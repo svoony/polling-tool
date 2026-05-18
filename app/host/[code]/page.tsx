@@ -1,15 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
 import { supabase } from '@/lib/supabase'
 import { EVENTS, type AnswerPayload, type QuestionPayload } from '@/lib/events'
 import { WordCloudDisplay } from '@/components/WordCloudDisplay'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 type Participant = {
   name: string
@@ -18,15 +14,13 @@ type Participant = {
 
 export default function HostPage() {
   const { code } = useParams<{ code: string }>()
+  const searchParams = useSearchParams()
+  const prompt = searchParams.get('prompt') ?? ''
+
   const [joinUrl, setJoinUrl] = useState('')
-
-  // Lobby state
   const [participants, setParticipants] = useState<Participant[]>([])
-
-  // Question state (in-memory only, never written to DB)
   const [question, setQuestion] = useState<QuestionPayload | null>(null)
-  const [prompt, setPrompt] = useState('')
-  const [answers, setAnswers] = useState<Record<string, string>>({}) // participantName -> answer
+  const [answers, setAnswers] = useState<Record<string, string>>({})
 
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
@@ -51,7 +45,7 @@ export default function HostPage() {
     return () => { supabase.removeChannel(channel) }
   }, [code])
 
-  // Game channel — question and answer broadcasts
+  // Game channel — receives answers
   useEffect(() => {
     const channel = supabase.channel(`game:${code}`)
       .on('broadcast', { event: EVENTS.ANSWER_SUBMIT }, ({ payload }: { payload: AnswerPayload }) => {
@@ -73,11 +67,10 @@ export default function HostPage() {
   }, [code])
 
   async function startQuestion() {
-    if (!prompt.trim()) return
     const q: QuestionPayload = {
       questionId: crypto.randomUUID(),
       type: 'word_cloud',
-      prompt: prompt.trim(),
+      prompt,
     }
     console.log('[host] sending question:start', q)
     await gameChannelRef.current?.send({
@@ -97,96 +90,90 @@ export default function HostPage() {
       payload: { questionId: question?.questionId },
     })
     setQuestion(null)
-    setPrompt('')
   }
 
+  const canStart = participants.length > 0 && !question
+
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto flex flex-col gap-8">
+    <main className="min-h-screen bg-zinc-950 p-6">
+      <div className="max-w-4xl mx-auto flex flex-col gap-6">
 
-        {/* Lobby row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Scan to Join</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              {joinUrl && (
-                <div className="bg-white p-4 rounded-lg border">
-                  <QRCode value={joinUrl} size={220} />
-                </div>
-              )}
-              <p className="text-3xl font-mono font-bold tracking-widest">{code}</p>
-              {joinUrl && (
-                <p className="text-xs text-gray-400 break-all text-center">{joinUrl}</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Participants
-                <Badge variant="secondary">{participants.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {participants.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">Waiting for participants...</p>
-              ) : (
-                <ul className="space-y-2">
-                  {participants.map((p) => (
-                    <li key={p.presence_ref} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
-                      <span className="w-2 h-2 bg-green-400 rounded-full shrink-0" />
-                      <span className="text-sm">{p.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-black text-yellow-400 tracking-tight">Event Lobby</h1>
+          <p className="text-zinc-400 mt-1 text-sm font-mono tracking-widest">{code}</p>
         </div>
 
-        {/* Question controls row */}
-        <Card>
+        {/* Lobby row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* QR card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col items-center gap-4">
+            <p className="text-white font-bold text-lg">Scan to Join</p>
+            {joinUrl && (
+              <div className="bg-white p-3 rounded-xl">
+                <QRCode value={joinUrl} size={200} />
+              </div>
+            )}
+            <p className="text-zinc-400 text-xs break-all text-center">{joinUrl}</p>
+          </div>
+
+          {/* Participants card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <p className="text-white font-bold text-lg">Participants</p>
+              <span className="bg-zinc-800 text-yellow-400 font-bold text-sm px-3 py-1 rounded-full">
+                {participants.length}
+              </span>
+            </div>
+            {participants.length === 0 ? (
+              <p className="text-zinc-500 text-center py-6">Waiting for participants...</p>
+            ) : (
+              <ul className="space-y-2 overflow-y-auto max-h-48">
+                {participants.map((p) => (
+                  <li key={p.presence_ref} className="flex items-center gap-2 bg-zinc-800 rounded-lg px-3 py-2">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full shrink-0" />
+                    <span className="text-white text-sm">{p.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Question card */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-4">
           {!question ? (
-            <>
-              <CardHeader>
-                <CardTitle>Word Cloud</CardTitle>
-              </CardHeader>
-              <CardContent className="flex gap-3">
-                <Input
-                  placeholder="Type a prompt, e.g. 'Describe today in one word'"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && startQuestion()}
-                />
-                <Button onClick={startQuestion} disabled={!prompt.trim()}>
-                  Start
-                </Button>
-              </CardContent>
-            </>
+            <div className="flex flex-col gap-3">
+              <p className="text-white font-bold text-lg">Question</p>
+              <p className="text-zinc-300 text-xl">{prompt}</p>
+              <button
+                onClick={startQuestion}
+                disabled={!canStart}
+                className="w-full bg-yellow-400 text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-yellow-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                {participants.length === 0 ? 'Waiting for participants...' : 'Start Question →'}
+              </button>
+            </div>
           ) : (
-            <>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{question.prompt}</span>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary">
-                      {Object.keys(answers).length} / {participants.length} answered
-                    </Badge>
-                    <Button variant="outline" size="sm" onClick={endQuestion}>
-                      End Question
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <WordCloudDisplay answers={answers} />
-              </CardContent>
-            </>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <p className="text-white font-bold text-xl">{question.prompt}</p>
+                <div className="flex items-center gap-3">
+                  <span className="bg-zinc-800 text-yellow-400 font-bold text-sm px-3 py-1 rounded-full">
+                    {Object.keys(answers).length} / {participants.length} answered
+                  </span>
+                  <button
+                    onClick={endQuestion}
+                    className="bg-zinc-700 text-white font-bold text-sm px-4 py-2 rounded-xl hover:bg-zinc-600 transition-colors"
+                  >
+                    End Question
+                  </button>
+                </div>
+              </div>
+              <WordCloudDisplay answers={answers} />
+            </div>
           )}
-        </Card>
+        </div>
 
       </div>
     </main>

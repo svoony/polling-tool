@@ -4,9 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { EVENTS, type AnswerPayload, type QuestionPayload } from '@/lib/events'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>()
@@ -15,7 +12,6 @@ export default function JoinPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Question state
   const [question, setQuestion] = useState<QuestionPayload | null>(null)
   const [answer, setAnswer] = useState('')
   const [hasAnswered, setHasAnswered] = useState(false)
@@ -23,7 +19,7 @@ export default function JoinPage() {
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
-  // Presence channel — keeps participant in lobby while tab is open
+  // Presence channel
   useEffect(() => {
     if (!joined) return
 
@@ -46,14 +42,13 @@ export default function JoinPage() {
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       supabase.removeChannel(channel)
     }
   }, [joined, code, name])
 
-  // Game channel — receives questions, sends answers
+  // Game channel
   useEffect(() => {
     if (!joined) return
 
@@ -123,77 +118,81 @@ export default function JoinPage() {
     setHasAnswered(true)
   }
 
-  // Waiting screen — shown after joining
-  if (joined) {
-    // Active question
-    if (question) {
-      return (
-        <main className="min-h-screen flex items-center justify-center bg-gray-50">
-          <Card className="w-full max-w-sm">
-            <CardHeader className="text-center">
-              <CardTitle>{question.prompt}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {hasAnswered ? (
-                <p className="text-center text-gray-500 py-4">Answer submitted!</p>
-              ) : (
-                <>
-                  <Input
-                    placeholder="Your answer"
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
-                    maxLength={60}
-                    autoFocus
-                  />
-                  <Button onClick={submitAnswer} disabled={!answer.trim()} className="w-full">
-                    Submit
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </main>
-      )
-    }
-
-    // Lobby waiting screen
+  // Active question screen
+  if (joined && question) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-full max-w-sm text-center">
-          <CardContent className="flex flex-col items-center gap-3 pt-8 pb-8">
-            <div className="text-5xl">👋</div>
-            <p className="text-xl font-semibold">You&apos;re in, {name}!</p>
-            <p className="text-gray-500">Waiting for the host to start...</p>
-          </CardContent>
-        </Card>
+      <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-6">
+          <h2 className="text-white font-black text-2xl text-center">{question.prompt}</h2>
+          {hasAnswered ? (
+            <div className="text-center py-4">
+              <p className="text-yellow-400 font-bold text-xl">Answer submitted!</p>
+              <p className="text-zinc-400 mt-2 text-sm">Waiting for others...</p>
+            </div>
+          ) : (
+            <>
+              <input
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                placeholder="Your answer"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
+                maxLength={60}
+                autoFocus
+              />
+              <button
+                onClick={submitAnswer}
+                disabled={!answer.trim()}
+                className="w-full bg-yellow-400 text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-yellow-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Submit
+              </button>
+            </>
+          )}
+        </div>
+      </main>
+    )
+  }
+
+  // Waiting screen
+  if (joined) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center flex flex-col items-center gap-4">
+          <div className="text-5xl">👋</div>
+          <p className="text-white font-black text-xl">You&apos;re in, {name}!</p>
+          <p className="text-zinc-400">Waiting for the host to start...</p>
+        </div>
       </main>
     )
   }
 
   // Join form
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle>Join Session</CardTitle>
-          <p className="text-gray-500 font-mono text-lg tracking-widest">{code}</p>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <Input
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && joinSession()}
-            maxLength={50}
-            autoFocus
-          />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <Button onClick={joinSession} disabled={loading || !name.trim()} className="w-full">
-            {loading ? 'Joining...' : 'Join'}
-          </Button>
-        </CardContent>
-      </Card>
+    <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+      <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-black text-yellow-400">Join Session</h1>
+          <p className="text-zinc-400 font-mono tracking-widest mt-1">{code}</p>
+        </div>
+        <input
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          placeholder="Your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && joinSession()}
+          maxLength={50}
+          autoFocus
+        />
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+        <button
+          onClick={joinSession}
+          disabled={loading || !name.trim()}
+          className="w-full bg-yellow-400 text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-yellow-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {loading ? 'Joining...' : 'Join →'}
+        </button>
+      </div>
     </main>
   )
 }
