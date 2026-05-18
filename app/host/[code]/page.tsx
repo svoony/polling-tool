@@ -8,9 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 type Participant = {
-  id: string
   name: string
-  joined_at: string
+  presence_ref: string
 }
 
 export default function HostPage() {
@@ -23,46 +22,19 @@ export default function HostPage() {
   }, [code])
 
   useEffect(() => {
-    let channelCleanup: (() => void) | null = null
+    const channel = supabase.channel(`room:${code}`)
 
-    async function setup() {
-      const { data: session } = await supabase
-        .from('sessions')
-        .select('id')
-        .eq('code', code)
-        .single()
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState<{ name: string }>()
+        const all = Object.values(state)
+          .flat()
+          .map((p) => ({ name: p.name, presence_ref: p.presence_ref }))
+        setParticipants(all)
+      })
+      .subscribe()
 
-      if (!session) return
-
-      const { data } = await supabase
-        .from('participants')
-        .select('*')
-        .eq('session_id', session.id)
-        .order('joined_at')
-
-      if (data) setParticipants(data)
-
-      const channel = supabase
-        .channel(`participants:${session.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'participants',
-            filter: `session_id=eq.${session.id}`,
-          },
-          (payload) => {
-            setParticipants((prev) => [...prev, payload.new as Participant])
-          }
-        )
-        .subscribe()
-
-      channelCleanup = () => { supabase.removeChannel(channel) }
-    }
-
-    setup()
-    return () => { channelCleanup?.() }
+    return () => { supabase.removeChannel(channel) }
   }, [code])
 
   return (
@@ -98,7 +70,7 @@ export default function HostPage() {
             ) : (
               <ul className="space-y-2">
                 {participants.map((p) => (
-                  <li key={p.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                  <li key={p.presence_ref} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                     <span className="w-2 h-2 bg-green-400 rounded-full shrink-0" />
                     <span className="text-sm">{p.name}</span>
                   </li>

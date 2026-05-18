@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,22 @@ export default function JoinPage() {
   const [joined, setJoined] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  useEffect(() => {
+    if (!joined) return
+
+    const channel = supabase.channel(`room:${code}`)
+    channelRef.current = channel
+
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ name })
+      }
+    })
+
+    return () => { supabase.removeChannel(channel) }
+  }, [joined, code, name])
 
   async function joinSession() {
     if (!name.trim()) return
