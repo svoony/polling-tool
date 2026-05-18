@@ -27,7 +27,20 @@ export default function JoinPage() {
       }
     })
 
-    return () => { supabase.removeChannel(channel) }
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        channel.untrack()
+      } else {
+        channel.track({ name })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      supabase.removeChannel(channel)
+    }
   }, [joined, code, name])
 
   async function joinSession() {
