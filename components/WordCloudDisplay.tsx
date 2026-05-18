@@ -31,7 +31,6 @@ export function WordCloudDisplay({ answers }: Props) {
   return (
     <div className="flex flex-wrap items-center justify-center">
       {sorted.map(([word, count]) => {
-        const rotate = seededRandom(word, 1) * 24 - 12   // -12 to +12 deg
         const mt = seededRandom(word, 2) * 20             // 0–20px top margin
         const mb = seededRandom(word, 3) * 20             // 0–20px bottom margin
         const mx = seededRandom(word, 4) * 16             // 0–16px horizontal margin
@@ -42,7 +41,6 @@ export function WordCloudDisplay({ answers }: Props) {
             key={word}
             style={{
               fontSize: `${fontSize}rem`,
-              transform: `rotate(${rotate}deg)`,
               margin: `${mt}px ${mx}px ${mb}px`,
               display: 'inline-block',
             }}

@@ -159,9 +159,6 @@ export default function HostPage() {
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <p className="text-white font-bold text-xl">{question.prompt}</p>
                 <div className="flex items-center gap-3">
-                  <span className="bg-zinc-800 text-yellow-400 font-bold text-sm px-3 py-1 rounded-full">
-                    {Object.keys(answers).length} / {participants.length} answered
-                  </span>
                   <button
                     onClick={endQuestion}
                     className="bg-zinc-700 text-white font-bold text-sm px-4 py-2 rounded-xl hover:bg-zinc-600 transition-colors"
