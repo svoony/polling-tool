@@ -23,12 +23,18 @@ export default function HostPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
 
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // Ref mirrors question state so presence join handler always sees the current value
+  const questionRef = useRef<QuestionPayload | null>(null)
+
+  useEffect(() => {
+    questionRef.current = question
+  }, [question])
 
   useEffect(() => {
     setJoinUrl(`${window.location.origin}/join/${code}`)
   }, [code])
 
-  // Presence channel — lobby participant list
+  // Presence channel — lobby participant list + late joiner re-broadcast
   useEffect(() => {
     const channel = supabase.channel(`room:${code}`)
       .on('presence', { event: 'sync' }, () => {
@@ -37,6 +43,16 @@ export default function HostPage() {
           .flat()
           .map((p) => ({ name: p.name, presence_ref: p.presence_ref }))
         setParticipants(all)
+      })
+      .on('presence', { event: 'join' }, async () => {
+        if (questionRef.current) {
+          console.log('[host] late joiner detected, re-broadcasting question:start')
+          await gameChannelRef.current?.send({
+            type: 'broadcast',
+            event: EVENTS.QUESTION_START,
+            payload: questionRef.current,
+          })
+        }
       })
       .subscribe((status) => {
         console.log('[host] presence channel status:', status)
