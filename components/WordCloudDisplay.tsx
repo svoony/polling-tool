@@ -44,7 +44,7 @@ export function WordCloudDisplay({ answers }: Props) {
               margin: `${mt}px ${mx}px ${mb}px`,
               display: 'inline-block',
             }}
-            className="bg-yellow-400 text-zinc-900 font-black px-3 py-1 rounded-full whitespace-nowrap"
+            className="bg-[#FFE600] text-zinc-900 font-black px-3 py-1 rounded-full whitespace-nowrap"
           >
             {word}
           </span>

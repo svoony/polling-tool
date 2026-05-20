@@ -116,7 +116,7 @@ export default function HostPage() {
 
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-black text-yellow-400 tracking-tight">Event Lobby</h1>
+          <h1 className="text-3xl font-black text-[#FFE600] tracking-tight">Event Lobby</h1>
           <p className="text-zinc-400 mt-1 text-sm font-mono tracking-widest">{code}</p>
         </div>
 
@@ -137,7 +137,7 @@ export default function HostPage() {
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <p className="text-white font-bold text-lg">Participants</p>
-              <span className="bg-zinc-800 text-yellow-400 font-bold text-sm px-3 py-1 rounded-full">
+              <span className="bg-zinc-800 text-[#FFE600] font-bold text-sm px-3 py-1 rounded-full">
                 {participants.length}
               </span>
             </div>
@@ -147,7 +147,7 @@ export default function HostPage() {
               <ul className="space-y-2 overflow-y-auto max-h-48">
                 {participants.map((p) => (
                   <li key={p.presence_ref} className="flex items-center gap-2 bg-zinc-800 rounded-lg px-3 py-2">
-                    <span className="w-2 h-2 bg-yellow-400 rounded-full shrink-0" />
+                    <span className="w-2 h-2 bg-[#FFE600] rounded-full shrink-0" />
                     <span className="text-white text-sm">{p.name}</span>
                   </li>
                 ))}
@@ -165,7 +165,7 @@ export default function HostPage() {
               <button
                 onClick={startQuestion}
                 disabled={!canStart}
-                className="w-full bg-yellow-400 text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-yellow-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 {participants.length === 0 ? 'Waiting for participants...' : 'Start Question →'}
               </button>

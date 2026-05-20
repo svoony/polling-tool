@@ -126,13 +126,13 @@ export default function JoinPage() {
           <h2 className="text-white font-black text-2xl text-center">{question.prompt}</h2>
           {hasAnswered ? (
             <div className="text-center py-4">
-              <p className="text-yellow-400 font-bold text-xl">Answer submitted!</p>
+              <p className="text-[#FFE600] font-bold text-xl">Answer submitted!</p>
               <p className="text-zinc-400 mt-2 text-sm">Waiting for others...</p>
             </div>
           ) : (
             <>
               <input
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
                 placeholder="Your answer"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
@@ -143,7 +143,7 @@ export default function JoinPage() {
               <button
                 onClick={submitAnswer}
                 disabled={!answer.trim()}
-                className="w-full bg-yellow-400 text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-yellow-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Submit
               </button>
@@ -172,11 +172,11 @@ export default function JoinPage() {
     <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
       <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-6">
         <div className="text-center">
-          <h1 className="text-3xl font-black text-yellow-400">Join Session</h1>
+          <h1 className="text-3xl font-black text-[#FFE600]">Join Session</h1>
           <p className="text-zinc-400 font-mono tracking-widest mt-1">{code}</p>
         </div>
         <input
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
           placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -188,7 +188,7 @@ export default function JoinPage() {
         <button
           onClick={joinSession}
           disabled={loading || !name.trim()}
-          className="w-full bg-yellow-400 text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-yellow-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Joining...' : 'Join →'}
         </button>
