@@ -21,23 +21,23 @@ export function HostCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, points }: Prop
         </span>
       </div>
 
-      {/* Y-high label */}
-      <div className="flex justify-center">
-        <span className="text-zinc-400 text-sm">{yHigh} ↑</span>
-      </div>
-
-      {/* Plot area */}
-      <div
-        className="w-full border border-zinc-700 rounded-xl overflow-hidden"
-        style={{ aspectRatio: '1 / 1' }}
-      >
+      {/* Constrain plot width so it doesn't dominate the screen */}
+      <div className="max-w-sm mx-auto w-full border border-zinc-700 rounded-xl overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
         <svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           {/* Background */}
           <rect width="100" height="100" fill="#27272a" />
-          {/* Grid lines */}
+
+          {/* Centre grid lines */}
           <line x1="50" y1="0" x2="50" y2="100" stroke="#3f3f46" strokeWidth="0.5" />
           <line x1="0" y1="50" x2="100" y2="50" stroke="#3f3f46" strokeWidth="0.5" />
-          {/* Points */}
+
+          {/* Corner labels — inside the SVG so they scale with the plot */}
+          <text x="2" y="2" dominantBaseline="hanging" textAnchor="start" fontSize="4.5" fill="#a1a1aa">↑ {yHigh}</text>
+          <text x="98" y="2" dominantBaseline="hanging" textAnchor="end" fontSize="4.5" fill="#a1a1aa">{xHigh} →</text>
+          <text x="2" y="98" dominantBaseline="auto" textAnchor="start" fontSize="4.5" fill="#a1a1aa">← {xLow}</text>
+          <text x="98" y="98" dominantBaseline="auto" textAnchor="end" fontSize="4.5" fill="#a1a1aa">{yLow} ↓</text>
+
+          {/* Data points */}
           {points.map((p, i) => (
             <circle
               key={i}
@@ -51,13 +51,6 @@ export function HostCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, points }: Prop
             />
           ))}
         </svg>
-      </div>
-
-      {/* X / Y-low labels */}
-      <div className="flex justify-between">
-        <span className="text-zinc-400 text-sm">{xLow}</span>
-        <span className="text-zinc-400 text-sm">↓ {yLow}</span>
-        <span className="text-zinc-400 text-sm">{xHigh}</span>
       </div>
     </div>
   )

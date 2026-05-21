@@ -11,6 +11,8 @@ type Props = {
   onSubmit: (x: number, y: number) => Promise<void>
 }
 
+const LABEL = 'absolute text-[10px] leading-tight text-zinc-400 pointer-events-none max-w-[40%] bg-zinc-800/70 rounded px-1 py-0.5'
+
 export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmit }: Props) {
   const plotRef = useRef<HTMLDivElement>(null)
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null)
@@ -55,12 +57,7 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
         <p className="text-zinc-400 text-sm text-center">Tap the graph to place yourself.</p>
       )}
 
-      {/* Y-high label */}
-      <div className="flex justify-center">
-        <span className="text-zinc-400 text-xs">{yHigh} ↑</span>
-      </div>
-
-      {/* Plot area */}
+      {/* Plot area — labels live inside the box at the four corners */}
       <div
         ref={plotRef}
         className="w-full aspect-square relative border border-zinc-600 rounded-xl bg-zinc-800"
@@ -71,6 +68,12 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
         {/* Centre grid lines */}
         <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700 pointer-events-none" />
         <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700 pointer-events-none" />
+
+        {/* Corner labels — always anchored to the plot regardless of device */}
+        <span className={`${LABEL} top-1.5 left-1.5`}>↑ {yHigh}</span>
+        <span className={`${LABEL} top-1.5 right-1.5 text-right`}>{xHigh} →</span>
+        <span className={`${LABEL} bottom-1.5 left-1.5`}>← {xLow}</span>
+        <span className={`${LABEL} bottom-1.5 right-1.5 text-right`}>{yLow} ↓</span>
 
         {/* Dot */}
         {point && (
@@ -83,13 +86,6 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
             }}
           />
         )}
-      </div>
-
-      {/* X / Y-low labels */}
-      <div className="flex justify-between">
-        <span className="text-zinc-400 text-xs">{xLow}</span>
-        <span className="text-zinc-400 text-xs">↓ {yLow}</span>
-        <span className="text-zinc-400 text-xs">{xHigh}</span>
       </div>
 
       {!submitted && (

@@ -229,39 +229,59 @@ export default function Home() {
             </div>
           )}
 
-          {/* Coordinate plot axis labels */}
+          {/* Coordinate plot axis labels — corner grid UI */}
           {type === 'coord_plot' && (
-            <div className="flex flex-col gap-3">
-              <p className="text-zinc-400 text-sm">Axis labels</p>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm"
-                  placeholder="X — left label (low)"
-                  value={xLow}
-                  onChange={(e) => setXLow(e.target.value)}
-                  maxLength={30}
-                />
-                <input
-                  className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm"
-                  placeholder="X — right label (high)"
-                  value={xHigh}
-                  onChange={(e) => setXHigh(e.target.value)}
-                  maxLength={30}
-                />
-                <input
-                  className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm"
-                  placeholder="Y — bottom label (low)"
-                  value={yLow}
-                  onChange={(e) => setYLow(e.target.value)}
-                  maxLength={30}
-                />
-                <input
-                  className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm"
-                  placeholder="Y — top label (high)"
-                  value={yHigh}
-                  onChange={(e) => setYHigh(e.target.value)}
-                  maxLength={30}
-                />
+            <div className="flex flex-col gap-2">
+              <p className="text-zinc-400 text-sm">Type an axis label into each corner</p>
+              {/* Bordered grid with inputs at the 4 corners */}
+              <div className="relative border border-zinc-700 rounded-xl bg-zinc-800/40" style={{ aspectRatio: '2 / 1' }}>
+                {/* Light centre grid lines */}
+                <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700/40 pointer-events-none" />
+                <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700/40 pointer-events-none" />
+
+                {/* Top-left: Y high */}
+                <div className="absolute top-2 left-2">
+                  <input
+                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs"
+                    placeholder="↑ Y high"
+                    value={yHigh}
+                    onChange={(e) => setYHigh(e.target.value)}
+                    maxLength={50}
+                  />
+                </div>
+
+                {/* Top-right: X high */}
+                <div className="absolute top-2 right-2">
+                  <input
+                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs text-right"
+                    placeholder="X high →"
+                    value={xHigh}
+                    onChange={(e) => setXHigh(e.target.value)}
+                    maxLength={50}
+                  />
+                </div>
+
+                {/* Bottom-left: X low */}
+                <div className="absolute bottom-2 left-2">
+                  <input
+                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs"
+                    placeholder="← X low"
+                    value={xLow}
+                    onChange={(e) => setXLow(e.target.value)}
+                    maxLength={50}
+                  />
+                </div>
+
+                {/* Bottom-right: Y low */}
+                <div className="absolute bottom-2 right-2">
+                  <input
+                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs text-right"
+                    placeholder="Y low ↓"
+                    value={yLow}
+                    onChange={(e) => setYLow(e.target.value)}
+                    maxLength={50}
+                  />
+                </div>
               </div>
             </div>
           )}
