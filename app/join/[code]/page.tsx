@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { EVENTS, type AnswerPayload, type QuestionPayload } from '@/lib/events'
+import { EVENTS, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
+import { ParticipantWordCloud } from '@/components/participant/ParticipantWordCloud'
+import { ParticipantTokenAllocation } from '@/components/participant/ParticipantTokenAllocation'
+import { ParticipantPictionary } from '@/components/participant/ParticipantPictionary'
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>()
@@ -11,64 +14,46 @@ export default function JoinPage() {
   const [joined, setJoined] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  const [question, setQuestion] = useState<QuestionPayload | null>(null)
-  const [answer, setAnswer] = useState('')
-  const [hasAnswered, setHasAnswered] = useState(false)
+  const [currentQuestion, setCurrentQuestion] = useState<QuestionStartPayload | null>(null)
+  const [sessionEnded, setSessionEnded] = useState(false)
 
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
-  // Presence channel
+  // Presence channel — keeps participant in lobby while tab is open
   useEffect(() => {
     if (!joined) return
-
     const channel = supabase.channel(`room:${code}`)
     presenceChannelRef.current = channel
-
     channel.subscribe(async (status) => {
-      console.log('[participant] presence channel status:', status)
-      if (status === 'SUBSCRIBED') {
-        await channel.track({ name })
-      }
+      console.log('[participant] presence:', status)
+      if (status === 'SUBSCRIBED') await channel.track({ name })
     })
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'hidden') {
-        channel.untrack()
-      } else {
-        channel.track({ name })
-      }
+    function handleVisibility() {
+      if (document.visibilityState === 'hidden') channel.untrack()
+      else channel.track({ name })
     }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('visibilitychange', handleVisibility)
       supabase.removeChannel(channel)
     }
   }, [joined, code, name])
 
-  // Game channel
+  // Game channel — receives questions and session end
   useEffect(() => {
     if (!joined) return
-
     const channel = supabase.channel(`game:${code}`)
-      .on('broadcast', { event: EVENTS.QUESTION_START }, ({ payload }: { payload: QuestionPayload }) => {
-        console.log('[participant] received question:start', payload)
-        setQuestion(payload)
-        setAnswer('')
-        setHasAnswered(false)
+      .on('broadcast', { event: EVENTS.QUESTION_START }, ({ payload }: { payload: QuestionStartPayload }) => {
+        console.log('[participant] question:start', payload)
+        setCurrentQuestion(payload)
       })
-      .on('broadcast', { event: EVENTS.QUESTION_END }, ({ payload }) => {
-        console.log('[participant] received question:end', payload)
-        setQuestion(null)
-        setAnswer('')
-        setHasAnswered(false)
+      .on('broadcast', { event: EVENTS.SESSION_END }, () => {
+        console.log('[participant] session:end')
+        setCurrentQuestion(null)
+        setSessionEnded(true)
       })
-      .subscribe((status) => {
-        console.log('[participant] game channel status:', status)
-      })
-
+      .subscribe((status) => console.log('[participant] game channel:', status))
     gameChannelRef.current = channel
     return () => { supabase.removeChannel(channel) }
   }, [joined, code])
@@ -77,23 +62,15 @@ export default function JoinPage() {
     if (!name.trim()) return
     setLoading(true)
     setError('')
-
     const { data: session } = await supabase
-      .from('sessions')
-      .select('id, status')
-      .eq('code', code)
-      .single()
-
+      .from('sessions').select('id').eq('code', code).single()
     if (!session) {
       setError('Session not found. Check the code and try again.')
       setLoading(false)
       return
     }
-
     const { error: insertError } = await supabase
-      .from('participants')
-      .insert({ session_id: session.id, name: name.trim() })
-
+      .from('participants').insert({ session_id: session.id, name: name.trim() })
     if (insertError) {
       setError('Could not join. Please try again.')
     } else {
@@ -102,59 +79,73 @@ export default function JoinPage() {
     setLoading(false)
   }
 
-  async function submitAnswer() {
-    if (!answer.trim() || hasAnswered || !question) return
-    const payload: AnswerPayload = {
-      questionId: question.questionId,
-      answer: answer.trim(),
-      participantName: name,
-    }
-    console.log('[participant] sending answer:submit', payload)
+  async function sendAnswer(payload: AnswerPayload) {
+    console.log('[participant] answer:submit', payload)
     await gameChannelRef.current?.send({
       type: 'broadcast',
       event: EVENTS.ANSWER_SUBMIT,
       payload,
     })
-    setHasAnswered(true)
   }
 
-  // Active question screen
-  if (joined && question) {
+  // ── SESSION ENDED ─────────────────────────────────────────────────────────
+  if (sessionEnded) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <div className="text-center">
+          <p className="text-5xl mb-4">🎉</p>
+          <h1 className="text-2xl font-black text-[#FFE600]">Session Complete</h1>
+          <p className="text-zinc-400 mt-2">Thanks for participating, {name}!</p>
+        </div>
+      </main>
+    )
+  }
+
+  // ── ACTIVE QUESTION ───────────────────────────────────────────────────────
+  if (joined && currentQuestion) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
-        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-6">
-          <h2 className="text-white font-black text-2xl text-center">{question.prompt}</h2>
-          {hasAnswered ? (
-            <div className="text-center py-4">
-              <p className="text-[#FFE600] font-bold text-xl">Answer submitted!</p>
-              <p className="text-zinc-400 mt-2 text-sm">Waiting for others...</p>
-            </div>
-          ) : (
-            <>
-              <input
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
-                placeholder="Your answer"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
-                maxLength={60}
-                autoFocus
-              />
-              <button
-                onClick={submitAnswer}
-                disabled={!answer.trim()}
-                className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                Submit
-              </button>
-            </>
+        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <p className="text-zinc-500 text-xs mb-4 text-center">
+            Question {currentQuestion.questionIndex + 1} of {currentQuestion.totalQuestions}
+          </p>
+
+          {currentQuestion.type === 'word_cloud' && (
+            <ParticipantWordCloud
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              onSubmit={(word) =>
+                sendAnswer({ type: 'word_cloud', questionId: currentQuestion.id, word, participantName: name })
+              }
+            />
+          )}
+
+          {currentQuestion.type === 'token_allocation' && (
+            <ParticipantTokenAllocation
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              buckets={currentQuestion.buckets}
+              onSubmit={(allocations) =>
+                sendAnswer({ type: 'token_allocation', questionId: currentQuestion.id, allocations, participantName: name })
+              }
+            />
+          )}
+
+          {currentQuestion.type === 'pictionary' && (
+            <ParticipantPictionary
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              onSubmit={(imageDataUrl) =>
+                sendAnswer({ type: 'pictionary', questionId: currentQuestion.id, imageDataUrl, participantName: name })
+              }
+            />
           )}
         </div>
       </main>
     )
   }
 
-  // Waiting screen
+  // ── WAITING ───────────────────────────────────────────────────────────────
   if (joined) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
@@ -167,7 +158,7 @@ export default function JoinPage() {
     )
   }
 
-  // Join form
+  // ── JOIN FORM ─────────────────────────────────────────────────────────────
   return (
     <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
       <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-6">
