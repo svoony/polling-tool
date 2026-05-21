@@ -7,6 +7,9 @@ import { EVENTS, type AnswerPayload, type QuestionStartPayload } from '@/lib/eve
 import { ParticipantWordCloud } from '@/components/participant/ParticipantWordCloud'
 import { ParticipantTokenAllocation } from '@/components/participant/ParticipantTokenAllocation'
 import { ParticipantPictionary } from '@/components/participant/ParticipantPictionary'
+import { ParticipantCoordPlot } from '@/components/participant/ParticipantCoordPlot'
+import { ParticipantRanking } from '@/components/participant/ParticipantRanking'
+import { ParticipantReact } from '@/components/participant/ParticipantReact'
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>()
@@ -137,6 +140,42 @@ export default function JoinPage() {
               prompt={currentQuestion.prompt}
               onSubmit={(imageDataUrl) =>
                 sendAnswer({ type: 'pictionary', questionId: currentQuestion.id, imageDataUrl, participantName: name })
+              }
+            />
+          )}
+
+          {currentQuestion.type === 'coord_plot' && (
+            <ParticipantCoordPlot
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              xLow={currentQuestion.xLow}
+              xHigh={currentQuestion.xHigh}
+              yLow={currentQuestion.yLow}
+              yHigh={currentQuestion.yHigh}
+              onSubmit={(x, y) =>
+                sendAnswer({ type: 'coord_plot', questionId: currentQuestion.id, x, y, participantName: name })
+              }
+            />
+          )}
+
+          {currentQuestion.type === 'ranking' && (
+            <ParticipantRanking
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              options={currentQuestion.options}
+              onSubmit={(orderedOptions) =>
+                sendAnswer({ type: 'ranking', questionId: currentQuestion.id, orderedOptions, participantName: name })
+              }
+            />
+          )}
+
+          {currentQuestion.type === 'react' && (
+            <ParticipantReact
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              items={currentQuestion.items}
+              onSubmit={(reactions) =>
+                sendAnswer({ type: 'react', questionId: currentQuestion.id, reactions, participantName: name })
               }
             />
           )}

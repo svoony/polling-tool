@@ -9,6 +9,9 @@ import { TYPE_LABELS, type Question } from '@/lib/questions'
 import { HostWordCloud } from '@/components/host/HostWordCloud'
 import { HostTokenAllocation } from '@/components/host/HostTokenAllocation'
 import { HostPictionary } from '@/components/host/HostPictionary'
+import { HostCoordPlot } from '@/components/host/HostCoordPlot'
+import { HostRanking } from '@/components/host/HostRanking'
+import { HostReact } from '@/components/host/HostReact'
 
 type Participant = { name: string; presence_ref: string }
 type Drawing = { name: string; url: string }
@@ -26,6 +29,10 @@ export default function HostPage() {
   const [allWordCloudWords, setAllWordCloudWords] = useState<Record<number, string[]>>({})
   const [allTokenTotals, setAllTokenTotals] = useState<Record<number, Record<string, number>>>({})
   const [allPictionaryDrawings, setAllPictionaryDrawings] = useState<Record<number, Drawing[]>>({})
+  const [allCoordPoints, setAllCoordPoints] = useState<Record<number, Array<{ x: number; y: number; name: string }>>>({})
+  const [allRankingScores, setAllRankingScores] = useState<Record<number, Record<string, number>>>({})
+  // allReactionCounts[qIdx][item][emoji] = count
+  const [allReactionCounts, setAllReactionCounts] = useState<Record<number, Record<string, Record<string, number>>>>({})
 
   // Per-question comparison choice — maps questionIndex → comparisonQuestionIndex | null
   // undefined means "never opened compare panel for this question" (treated as no comparison)
@@ -95,6 +102,34 @@ export default function HostPage() {
             ...prev,
             [idx]: [...(prev[idx] ?? []), { name: payload.participantName, url: payload.imageDataUrl }],
           }))
+        } else if (payload.type === 'coord_plot') {
+          setAllCoordPoints((prev) => ({
+            ...prev,
+            [idx]: [...(prev[idx] ?? []), { x: payload.x, y: payload.y, name: payload.participantName }],
+          }))
+        } else if (payload.type === 'ranking') {
+          setAllRankingScores((prev) => {
+            const prevScores = prev[idx] ?? {}
+            const next = { ...prevScores }
+            const n = payload.orderedOptions.length
+            payload.orderedOptions.forEach((opt, i) => {
+              next[opt] = (next[opt] ?? 0) + (n - i)
+            })
+            return { ...prev, [idx]: next }
+          })
+        } else if (payload.type === 'react') {
+          setAllReactionCounts((prev) => {
+            const prevCounts = prev[idx] ?? {}
+            const next: Record<string, Record<string, number>> = {}
+            for (const [item, emojiMap] of Object.entries(prevCounts)) {
+              next[item] = { ...emojiMap }
+            }
+            for (const { item, emoji } of payload.reactions) {
+              if (!next[item]) next[item] = {}
+              next[item][emoji] = (next[item][emoji] ?? 0) + 1
+            }
+            return { ...prev, [idx]: next }
+          })
         }
       })
       .subscribe((status) => console.log('[host] game channel:', status))
@@ -187,6 +222,24 @@ export default function HostPage() {
     }
     if (q.type === 'pictionary') {
       return <HostPictionary prompt={q.prompt} drawings={allPictionaryDrawings[qIdx] ?? []} />
+    }
+    if (q.type === 'coord_plot') {
+      return (
+        <HostCoordPlot
+          prompt={q.prompt}
+          xLow={q.xLow}
+          xHigh={q.xHigh}
+          yLow={q.yLow}
+          yHigh={q.yHigh}
+          points={allCoordPoints[qIdx] ?? []}
+        />
+      )
+    }
+    if (q.type === 'ranking') {
+      return <HostRanking prompt={q.prompt} options={q.options} scores={allRankingScores[qIdx] ?? {}} />
+    }
+    if (q.type === 'react') {
+      return <HostReact prompt={q.prompt} items={q.items} counts={allReactionCounts[qIdx] ?? {}} />
     }
     return null
   }

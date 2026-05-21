@@ -34,7 +34,32 @@ export type PictionaryAnswerPayload = {
   participantName: string
 }
 
+export type CoordPlotAnswerPayload = {
+  type: 'coord_plot'
+  questionId: string
+  x: number
+  y: number
+  participantName: string
+}
+
+export type RankingAnswerPayload = {
+  type: 'ranking'
+  questionId: string
+  orderedOptions: string[]
+  participantName: string
+}
+
+export type ReactAnswerPayload = {
+  type: 'react'
+  questionId: string
+  reactions: Array<{ item: string; emoji: string }>
+  participantName: string
+}
+
 export type AnswerPayload =
   | WordCloudAnswerPayload
   | TokenAllocationAnswerPayload
   | PictionaryAnswerPayload
+  | CoordPlotAnswerPayload
+  | RankingAnswerPayload
+  | ReactAnswerPayload
