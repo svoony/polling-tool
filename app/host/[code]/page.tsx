@@ -22,20 +22,26 @@ export default function HostPage() {
   const [phase, setPhase] = useState<Phase>('lobby')
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  // In-memory answer state — reset on each question advance
-  const [wordCloudWords, setWordCloudWords] = useState<string[]>([])
-  const [tokenTotals, setTokenTotals] = useState<Record<string, number>>({})
-  const [pictionaryDrawings, setPictionaryDrawings] = useState<Drawing[]>([])
+  // Per-question answer storage — keyed by question index
+  const [allWordCloudWords, setAllWordCloudWords] = useState<Record<number, string[]>>({})
+  const [allTokenTotals, setAllTokenTotals] = useState<Record<number, Record<string, number>>>({})
+  const [allPictionaryDrawings, setAllPictionaryDrawings] = useState<Record<number, Drawing[]>>({})
+
+  // Per-question comparison choice — maps questionIndex → comparisonQuestionIndex | null
+  // undefined means "never opened compare panel for this question" (treated as no comparison)
+  const [comparisonChoices, setComparisonChoices] = useState<Record<number, number | null>>({})
+  const [compareOpen, setCompareOpen] = useState(false)
 
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
-  // Ref mirrors the current broadcast payload so the presence join handler is never stale
   const currentPayloadRef = useRef<QuestionStartPayload | null>(null)
+  // Ref so the broadcast answer handler can always read the latest index without stale closure
+  const currentIndexRef = useRef(0)
 
   useEffect(() => {
     setJoinUrl(`${window.location.origin}/join/${code}`)
   }, [code])
 
-  // Load questions from sessionStorage (written by home page before navigating here)
+  // Load questions from sessionStorage
   useEffect(() => {
     const stored = sessionStorage.getItem(`session_${code}`)
     if (stored) setQuestions(JSON.parse(stored))
@@ -69,18 +75,26 @@ export default function HostPage() {
     const channel = supabase.channel(`game:${code}`)
       .on('broadcast', { event: EVENTS.ANSWER_SUBMIT }, ({ payload }: { payload: AnswerPayload }) => {
         console.log('[host] answer:submit', payload)
+        const idx = currentIndexRef.current
         if (payload.type === 'word_cloud') {
-          setWordCloudWords((prev) => [...prev, payload.word])
+          setAllWordCloudWords((prev) => ({
+            ...prev,
+            [idx]: [...(prev[idx] ?? []), payload.word],
+          }))
         } else if (payload.type === 'token_allocation') {
-          setTokenTotals((prev) => {
-            const next = { ...prev }
+          setAllTokenTotals((prev) => {
+            const prevBuckets = prev[idx] ?? {}
+            const next = { ...prevBuckets }
             for (const [bucket, amount] of Object.entries(payload.allocations)) {
               next[bucket] = (next[bucket] ?? 0) + amount
             }
-            return next
+            return { ...prev, [idx]: next }
           })
         } else if (payload.type === 'pictionary') {
-          setPictionaryDrawings((prev) => [...prev, { name: payload.participantName, url: payload.imageDataUrl }])
+          setAllPictionaryDrawings((prev) => ({
+            ...prev,
+            [idx]: [...(prev[idx] ?? []), { name: payload.participantName, url: payload.imageDataUrl }],
+          }))
         }
       })
       .subscribe((status) => console.log('[host] game channel:', status))
@@ -89,24 +103,32 @@ export default function HostPage() {
     return () => { supabase.removeChannel(channel) }
   }, [code])
 
-  function buildPayload(index: number): QuestionStartPayload {
-    return { ...questions[index], questionIndex: index, totalQuestions: questions.length } as QuestionStartPayload
-  }
-
-  function resetAnswers() {
-    setWordCloudWords([])
-    setTokenTotals({})
-    setPictionaryDrawings([])
+  function buildPayload(index: number, qs: Question[]): QuestionStartPayload {
+    return { ...qs[index], questionIndex: index, totalQuestions: qs.length } as QuestionStartPayload
   }
 
   async function startSession() {
-    const payload = buildPayload(0)
+    const payload = buildPayload(0, questions)
     console.log('[host] session start — question:start', payload)
     await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.QUESTION_START, payload })
     currentPayloadRef.current = payload
+    currentIndexRef.current = 0
     setCurrentIndex(0)
+    setCompareOpen(false)
     setPhase('active')
-    resetAnswers()
+  }
+
+  async function goToIndex(newIndex: number) {
+    if (newIndex < 0 || newIndex >= questions.length) return
+    const payload = buildPayload(newIndex, questions)
+    console.log('[host] question:start', payload)
+    await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.QUESTION_START, payload })
+    currentPayloadRef.current = payload
+    currentIndexRef.current = newIndex
+    setCurrentIndex(newIndex)
+    // Reset compare panel for this question index (undefined = no comparison yet)
+    // We do NOT reset comparisonChoices — they are preserved per-index
+    setCompareOpen(false)
   }
 
   async function advance() {
@@ -118,12 +140,55 @@ export default function HostPage() {
       setPhase('ended')
       return
     }
-    const payload = buildPayload(nextIndex)
-    console.log('[host] question:start', payload)
-    await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.QUESTION_START, payload })
-    currentPayloadRef.current = payload
-    setCurrentIndex(nextIndex)
-    resetAnswers()
+    await goToIndex(nextIndex)
+  }
+
+  async function previous() {
+    if (currentIndex === 0) return
+    await goToIndex(currentIndex - 1)
+  }
+
+  // Comparison helpers
+  const comparisonIndex = comparisonChoices[currentIndex] ?? null
+
+  function openCompare() {
+    setCompareOpen(true)
+    // Auto-select the nearest other question if none chosen yet
+    if (comparisonChoices[currentIndex] === undefined) {
+      const auto = currentIndex > 0 ? currentIndex - 1 : 1
+      setComparisonChoices((prev) => ({ ...prev, [currentIndex]: auto }))
+    }
+  }
+
+  function closeCompare() {
+    setCompareOpen(false)
+  }
+
+  function selectComparison(idx: number) {
+    setComparisonChoices((prev) => ({ ...prev, [currentIndex]: idx }))
+  }
+
+  // Render a result panel for a given question index (used for both top and bottom halves)
+  function renderResults(qIdx: number) {
+    const q = questions[qIdx] as Question | undefined
+    if (!q) return null
+    if (q.type === 'word_cloud') {
+      return <HostWordCloud prompt={q.prompt} words={allWordCloudWords[qIdx] ?? []} />
+    }
+    if (q.type === 'token_allocation') {
+      return (
+        <HostTokenAllocation
+          prompt={q.prompt}
+          buckets={q.buckets}
+          totals={allTokenTotals[qIdx] ?? {}}
+          participantCount={participants.length}
+        />
+      )
+    }
+    if (q.type === 'pictionary') {
+      return <HostPictionary prompt={q.prompt} drawings={allPictionaryDrawings[qIdx] ?? []} />
+    }
+    return null
   }
 
   const currentQuestion = questions[currentIndex] as Question | undefined
@@ -219,7 +284,7 @@ export default function HostPage() {
   return (
     <main className="min-h-screen bg-zinc-950 flex overflow-hidden">
 
-      {/* Sidebar — fixed, not scrollable with content */}
+      {/* Sidebar */}
       <aside className="w-52 shrink-0 bg-zinc-900 border-r border-zinc-800 p-4 flex flex-col gap-4 h-screen sticky top-0 overflow-y-auto">
         <div className="text-center">
           <p className="text-[#FFE600] font-black">Event Lobby</p>
@@ -256,11 +321,11 @@ export default function HostPage() {
         </div>
       </aside>
 
-      {/* Main — scrollable */}
-      <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+      {/* Main — fixed height, split into top and bottom halves */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
 
         {/* Top bar */}
-        <div className="flex items-center justify-between">
+        <div className="shrink-0 flex items-center justify-between px-8 py-4 border-b border-zinc-800">
           <div>
             <span className="text-[#FFE600] text-xs font-bold uppercase tracking-wider">
               {currentQuestion ? TYPE_LABELS[currentQuestion.type] : ''}
@@ -269,32 +334,96 @@ export default function HostPage() {
               Question {currentIndex + 1} of {questions.length}
             </p>
           </div>
-          <button
-            onClick={advance}
-            className="bg-[#FFE600] text-zinc-900 font-black px-6 py-2 rounded-xl hover:bg-[#FFD900] transition-colors"
-          >
-            {isLastQuestion ? 'End Session →' : 'Next Question →'}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Compare toggle */}
+            {questions.length > 1 && (
+              compareOpen ? (
+                <button
+                  onClick={closeCompare}
+                  className="bg-zinc-700 text-white font-bold px-4 py-2 rounded-xl hover:bg-zinc-600 transition-colors text-sm"
+                >
+                  Hide Compare
+                </button>
+              ) : (
+                <button
+                  onClick={openCompare}
+                  className="bg-zinc-800 text-[#FFE600] font-bold px-4 py-2 rounded-xl hover:bg-zinc-700 transition-colors text-sm border border-zinc-700"
+                >
+                  Compare ↕
+                </button>
+              )
+            )}
+            {/* Navigation */}
+            {currentIndex > 0 && (
+              <button
+                onClick={previous}
+                className="bg-zinc-700 text-white font-bold px-4 py-2 rounded-xl hover:bg-zinc-600 transition-colors text-sm"
+              >
+                ← Prev
+              </button>
+            )}
+            <button
+              onClick={advance}
+              className="bg-[#FFE600] text-zinc-900 font-black px-6 py-2 rounded-xl hover:bg-[#FFD900] transition-colors"
+            >
+              {isLastQuestion ? 'End Session →' : 'Next →'}
+            </button>
+          </div>
         </div>
 
-        {/* Results */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          {currentQuestion?.type === 'word_cloud' && (
-            <HostWordCloud prompt={currentQuestion.prompt} words={wordCloudWords} />
-          )}
-          {currentQuestion?.type === 'token_allocation' && (
-            <HostTokenAllocation
-              prompt={currentQuestion.prompt}
-              buckets={currentQuestion.buckets}
-              totals={tokenTotals}
-              participantCount={participants.length}
-            />
-          )}
-          {currentQuestion?.type === 'pictionary' && (
-            <HostPictionary prompt={currentQuestion.prompt} drawings={pictionaryDrawings} />
-          )}
-        </div>
+        {/* Content area — split or full */}
+        <div className="flex-1 flex flex-col min-h-0">
 
+          {/* Top half — current question results */}
+          <div className={`${compareOpen ? 'flex-1 min-h-0' : 'flex-1 min-h-0'} overflow-y-auto p-8`}>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 h-full">
+              {renderResults(currentIndex)}
+            </div>
+          </div>
+
+          {/* Bottom half — comparison panel (shown only when compareOpen) */}
+          {compareOpen && (
+            <div className="flex-1 min-h-0 flex flex-col border-t-2 border-[#FFE600]/30">
+              {/* Comparison question selector */}
+              <div className="shrink-0 flex items-center gap-2 px-8 py-3 bg-zinc-900/50 border-b border-zinc-800 overflow-x-auto">
+                <span className="text-zinc-500 text-xs uppercase tracking-widest shrink-0 mr-2">Compare with:</span>
+                {questions.map((q, i) => {
+                  if (i === currentIndex) return null
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => selectComparison(i)}
+                      className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                        comparisonIndex === i
+                          ? 'bg-[#FFE600] text-zinc-900'
+                          : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                      }`}
+                    >
+                      Q{i + 1}: {q.prompt.length > 24 ? q.prompt.slice(0, 24) + '…' : q.prompt}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Comparison results */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-8">
+                {comparisonIndex !== null ? (
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 h-full">
+                    <p className="text-zinc-500 text-xs uppercase tracking-widest mb-4">
+                      Q{comparisonIndex + 1} · {questions[comparisonIndex] ? TYPE_LABELS[questions[comparisonIndex].type] : ''}
+                    </p>
+                    {renderResults(comparisonIndex)}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-zinc-600 text-sm">Select a question above to compare</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
     </main>
   )
