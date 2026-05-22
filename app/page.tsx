@@ -229,56 +229,62 @@ export default function Home() {
             </div>
           )}
 
-          {/* Coordinate plot axis labels — corner grid UI */}
+          {/* Coordinate plot axis labels */}
           {type === 'coord_plot' && (
             <div className="flex flex-col gap-2">
-              <p className="text-zinc-400 text-sm">Type an axis label into each corner</p>
-              {/* Bordered grid with inputs at the 4 corners */}
-              <div className="relative border border-zinc-700 rounded-xl bg-zinc-800/40" style={{ aspectRatio: '2 / 1' }}>
-                {/* Light centre grid lines */}
-                <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700/40 pointer-events-none" />
-                <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700/40 pointer-events-none" />
+              <p className="text-zinc-400 text-sm">Label each end of each axis</p>
 
-                {/* Top-left: Y high */}
-                <div className="absolute top-2 left-2">
-                  <input
-                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs"
-                    placeholder="↑ Y high"
+              {/* Row: Y-label column + grid */}
+              <div className="flex gap-3 items-stretch">
+                {/* Y labels — left of grid, top = high, bottom = low */}
+                <div className="flex flex-col justify-between w-24 shrink-0 gap-2">
+                  <textarea
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none overflow-hidden"
+                    placeholder="Y high (top)"
+                    rows={1}
                     value={yHigh}
                     onChange={(e) => setYHigh(e.target.value)}
+                    onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
                     maxLength={50}
                   />
-                </div>
-
-                {/* Top-right: X high */}
-                <div className="absolute top-2 right-2">
-                  <input
-                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs text-right"
-                    placeholder="X high →"
-                    value={xHigh}
-                    onChange={(e) => setXHigh(e.target.value)}
-                    maxLength={50}
-                  />
-                </div>
-
-                {/* Bottom-left: X low */}
-                <div className="absolute bottom-2 left-2">
-                  <input
-                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs"
-                    placeholder="← X low"
-                    value={xLow}
-                    onChange={(e) => setXLow(e.target.value)}
-                    maxLength={50}
-                  />
-                </div>
-
-                {/* Bottom-right: Y low */}
-                <div className="absolute bottom-2 right-2">
-                  <input
-                    className="w-28 bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#FFE600] text-xs text-right"
-                    placeholder="Y low ↓"
+                  <textarea
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none overflow-hidden"
+                    placeholder="Y low (bottom)"
+                    rows={1}
                     value={yLow}
                     onChange={(e) => setYLow(e.target.value)}
+                    onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
+                    maxLength={50}
+                  />
+                </div>
+
+                {/* Grid preview */}
+                <div className="flex-1 aspect-square border border-zinc-700 rounded-xl bg-zinc-800/40 relative shrink-0 min-w-0">
+                  <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700/50 pointer-events-none" />
+                  <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700/50 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* X labels — below grid, offset to align with grid left/right edges */}
+              <div className="flex gap-3">
+                <div className="w-24 shrink-0" />{/* spacer matching Y column */}
+                <div className="flex-1 flex gap-2">
+                  <textarea
+                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none overflow-hidden"
+                    placeholder="X low (left)"
+                    rows={1}
+                    value={xLow}
+                    onChange={(e) => setXLow(e.target.value)}
+                    onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
+                    maxLength={50}
+                  />
+                  <textarea
+                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none overflow-hidden text-right"
+                    placeholder="X high (right)"
+                    rows={1}
+                    value={xHigh}
+                    onChange={(e) => setXHigh(e.target.value)}
+                    onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
                     maxLength={50}
                   />
                 </div>

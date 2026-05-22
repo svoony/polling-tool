@@ -11,8 +11,6 @@ type Props = {
   onSubmit: (x: number, y: number) => Promise<void>
 }
 
-const LABEL = 'absolute text-[10px] leading-tight text-zinc-400 pointer-events-none max-w-[40%] bg-zinc-800/70 rounded px-1 py-0.5'
-
 export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmit }: Props) {
   const plotRef = useRef<HTMLDivElement>(null)
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null)
@@ -57,35 +55,47 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
         <p className="text-zinc-400 text-sm text-center">Tap the graph to place yourself.</p>
       )}
 
-      {/* Plot area — labels live inside the box at the four corners */}
-      <div
-        ref={plotRef}
-        className="w-full aspect-square relative border border-zinc-600 rounded-xl bg-zinc-800"
-        style={{ touchAction: 'none', cursor: submitted ? 'default' : 'crosshair' }}
-        onClick={handleClick}
-        onTouchStart={handleTouch}
-      >
-        {/* Centre grid lines */}
-        <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700 pointer-events-none" />
-        <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700 pointer-events-none" />
+      {/* Row: Y labels (left, outside) + Plot */}
+      <div className="flex gap-2 items-stretch">
+        {/* Y labels column — spans the full height of the plot */}
+        <div className="flex flex-col justify-between shrink-0 w-14 text-right">
+          <span className="text-zinc-400 text-xs leading-tight break-words">{yHigh}</span>
+          <span className="text-zinc-400 text-xs leading-tight break-words">{yLow}</span>
+        </div>
 
-        {/* Corner labels — always anchored to the plot regardless of device */}
-        <span className={`${LABEL} top-1.5 left-1.5`}>↑ {yHigh}</span>
-        <span className={`${LABEL} top-1.5 right-1.5 text-right`}>{xHigh} →</span>
-        <span className={`${LABEL} bottom-1.5 left-1.5`}>← {xLow}</span>
-        <span className={`${LABEL} bottom-1.5 right-1.5 text-right`}>{yLow} ↓</span>
+        {/* Plot */}
+        <div
+          ref={plotRef}
+          className="flex-1 aspect-square relative border border-zinc-600 rounded-xl bg-zinc-800"
+          style={{ touchAction: 'none', cursor: submitted ? 'default' : 'crosshair' }}
+          onClick={handleClick}
+          onTouchStart={handleTouch}
+        >
+          {/* Centre grid lines */}
+          <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700 pointer-events-none" />
+          <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700 pointer-events-none" />
 
-        {/* Dot */}
-        {point && (
-          <div
-            className="absolute w-5 h-5 bg-[#FFE600] rounded-full border-2 border-zinc-900 shadow-lg pointer-events-none"
-            style={{
-              left: `${point.x * 100}%`,
-              top: `${(1 - point.y) * 100}%`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        )}
+          {/* Dot */}
+          {point && (
+            <div
+              className="absolute w-5 h-5 bg-[#FFE600] rounded-full border-2 border-zinc-900 shadow-lg pointer-events-none"
+              style={{
+                left: `${point.x * 100}%`,
+                top: `${(1 - point.y) * 100}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* X labels row — below plot, offset by Y column width */}
+      <div className="flex gap-2">
+        <div className="w-14 shrink-0" />{/* spacer matching Y column */}
+        <div className="flex-1 flex justify-between">
+          <span className="text-zinc-400 text-xs leading-tight">{xLow}</span>
+          <span className="text-zinc-400 text-xs leading-tight text-right">{xHigh}</span>
+        </div>
       </div>
 
       {!submitted && (

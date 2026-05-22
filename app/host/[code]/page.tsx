@@ -428,8 +428,8 @@ export default function HostPage() {
         <div className="flex-1 flex flex-col min-h-0">
 
           {/* Top half — current question results */}
-          <div className={`${compareOpen ? 'flex-1 min-h-0' : 'flex-1 min-h-0'} overflow-y-auto p-8`}>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 h-full">
+          <div className="flex-1 min-h-0 overflow-y-auto p-8">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
               {renderResults(currentIndex)}
             </div>
           </div>
@@ -461,7 +461,7 @@ export default function HostPage() {
               {/* Comparison results */}
               <div className="flex-1 min-h-0 overflow-y-auto p-8">
                 {comparisonIndex !== null ? (
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 h-full">
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
                     <p className="text-zinc-500 text-xs uppercase tracking-widest mb-4">
                       Q{comparisonIndex + 1} · {questions[comparisonIndex] ? TYPE_LABELS[questions[comparisonIndex].type] : ''}
                     </p>
