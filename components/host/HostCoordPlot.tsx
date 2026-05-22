@@ -21,8 +21,8 @@ export function HostCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, points }: Prop
         </span>
       </div>
 
-      {/* Constrain the whole plot section so it doesn't dominate the panel */}
-      <div className="max-w-sm w-full">
+      {/* Fill the available width — height-capped via min(100%, 70vh) so the square never overflows the viewport */}
+      <div className="w-full mx-auto" style={{ maxWidth: 'min(100%, 70vh)' }}>
 
         {/* Row: Y labels (left, outside) + Plot */}
         <div className="flex gap-3 items-stretch">

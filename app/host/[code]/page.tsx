@@ -402,7 +402,7 @@ export default function HostPage() {
                   onClick={openCompare}
                   className="bg-zinc-800 text-[#FFE600] font-bold px-4 py-2 rounded-xl hover:bg-zinc-700 transition-colors text-sm border border-zinc-700"
                 >
-                  Compare ↕
+                  Compare ↔
                 </button>
               )
             )}
@@ -424,21 +424,25 @@ export default function HostPage() {
           </div>
         </div>
 
-        {/* Content area — split or full */}
-        <div className="flex-1 flex flex-col min-h-0">
+        {/* Content area — horizontal split (left = current, right = compare) */}
+        <div className="flex-1 flex min-h-0">
 
-          {/* Top half — current question results */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-8">
+          {/* Left half — current question results (always visible) */}
+          <div
+            className={`${compareOpen ? 'w-1/2' : 'flex-1'} min-w-0 overflow-y-auto p-8 ${
+              compareOpen ? 'border-r-2 border-[#FFE600]/30' : ''
+            }`}
+          >
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
               {renderResults(currentIndex)}
             </div>
           </div>
 
-          {/* Bottom half — comparison panel (shown only when compareOpen) */}
+          {/* Right half — comparison panel (shown only when compareOpen) */}
           {compareOpen && (
-            <div className="flex-1 min-h-0 flex flex-col border-t-2 border-[#FFE600]/30">
+            <div className="w-1/2 min-w-0 flex flex-col">
               {/* Comparison question selector */}
-              <div className="shrink-0 flex items-center gap-2 px-8 py-3 bg-zinc-900/50 border-b border-zinc-800 overflow-x-auto">
+              <div className="shrink-0 flex items-center gap-2 px-6 py-3 bg-zinc-900/50 border-b border-zinc-800 overflow-x-auto">
                 <span className="text-zinc-500 text-xs uppercase tracking-widest shrink-0 mr-2">Compare with:</span>
                 {questions.map((q, i) => {
                   if (i === currentIndex) return null
@@ -469,7 +473,7 @@ export default function HostPage() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-zinc-600 text-sm">Select a question above to compare</p>
+                    <p className="text-zinc-600 text-sm">Select a question to compare</p>
                   </div>
                 )}
               </div>
