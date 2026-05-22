@@ -323,11 +323,44 @@ export default function HostPage() {
   // ── ENDED PHASE ──────────────────────────────────────────────────────────────
   if (phase === 'ended') {
     return (
-      <main className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-6xl mb-4">🎉</p>
-          <h1 className="text-3xl font-black text-[#FFE600]">Session Complete</h1>
-          <p className="text-zinc-400 mt-2">Thanks for participating!</p>
+      <main className="min-h-screen bg-zinc-950 p-8">
+        <div className="max-w-4xl mx-auto flex flex-col gap-8">
+
+          {/* Screen header — hidden when printing */}
+          <div className="flex items-center justify-between print:hidden">
+            <div>
+              <h1 className="text-3xl font-black text-[#FFE600]">Session Complete 🎉</h1>
+              <p className="text-zinc-400 mt-1">
+                {participants.length} participant{participants.length !== 1 ? 's' : ''} ·{' '}
+                {questions.length} question{questions.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <button
+              onClick={() => window.print()}
+              className="bg-[#FFE600] text-zinc-900 font-black px-6 py-3 rounded-xl hover:bg-[#FFD900] transition-colors text-lg"
+            >
+              Save as PDF ↓
+            </button>
+          </div>
+
+          {/* Print-only header */}
+          <div className="hidden print:block">
+            <h1 className="text-3xl font-black text-[#FFE600]">Session Summary</h1>
+            <p className="text-zinc-400 mt-1">
+              Code: {code} · {participants.length} participants · {questions.length} questions
+            </p>
+          </div>
+
+          {/* One card per question */}
+          {questions.map((q, i) => (
+            <div key={q.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 break-inside-avoid">
+              <p className="text-zinc-500 text-xs uppercase tracking-widest mb-4">
+                Q{i + 1} · {TYPE_LABELS[q.type]}
+              </p>
+              {renderResults(i)}
+            </div>
+          ))}
+
         </div>
       </main>
     )
