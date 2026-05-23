@@ -56,6 +56,13 @@ export type ReactAnswerPayload = {
   participantName: string
 }
 
+export type MultipleChoiceAnswerPayload = {
+  type: 'multiple_choice'
+  questionId: string
+  option: string
+  participantName: string
+}
+
 export type AnswerPayload =
   | WordCloudAnswerPayload
   | TokenAllocationAnswerPayload
@@ -63,3 +70,4 @@ export type AnswerPayload =
   | CoordPlotAnswerPayload
   | RankingAnswerPayload
   | ReactAnswerPayload
+  | MultipleChoiceAnswerPayload

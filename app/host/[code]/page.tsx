@@ -12,6 +12,7 @@ import { HostPictionary } from '@/components/host/HostPictionary'
 import { HostCoordPlot } from '@/components/host/HostCoordPlot'
 import { HostRanking } from '@/components/host/HostRanking'
 import { HostReact } from '@/components/host/HostReact'
+import { HostMultipleChoice } from '@/components/host/HostMultipleChoice'
 
 type Participant = { name: string; presence_ref: string }
 type Drawing = { name: string; url: string }
@@ -33,6 +34,8 @@ export default function HostPage() {
   const [allRankingScores, setAllRankingScores] = useState<Record<number, Record<string, number>>>({})
   // allReactionCounts[qIdx][item][emoji] = count
   const [allReactionCounts, setAllReactionCounts] = useState<Record<number, Record<string, Record<string, number>>>>({})
+  // allMcVotes[qIdx][option] = count
+  const [allMcVotes, setAllMcVotes] = useState<Record<number, Record<string, number>>>({})
 
   // Per-question comparison choice — maps questionIndex → comparisonQuestionIndex | null
   // undefined means "never opened compare panel for this question" (treated as no comparison)
@@ -116,6 +119,11 @@ export default function HostPage() {
               next[opt] = (next[opt] ?? 0) + (n - i)
             })
             return { ...prev, [idx]: next }
+          })
+        } else if (payload.type === 'multiple_choice') {
+          setAllMcVotes((prev) => {
+            const prevVotes = prev[idx] ?? {}
+            return { ...prev, [idx]: { ...prevVotes, [payload.option]: (prevVotes[payload.option] ?? 0) + 1 } }
           })
         } else if (payload.type === 'react') {
           setAllReactionCounts((prev) => {
@@ -240,6 +248,9 @@ export default function HostPage() {
     }
     if (q.type === 'react') {
       return <HostReact prompt={q.prompt} items={q.items} counts={allReactionCounts[qIdx] ?? {}} />
+    }
+    if (q.type === 'multiple_choice') {
+      return <HostMultipleChoice prompt={q.prompt} options={q.options} votes={allMcVotes[qIdx] ?? {}} />
     }
     return null
   }

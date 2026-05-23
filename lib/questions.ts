@@ -41,6 +41,13 @@ export type ReactQuestion = {
   items: string[]
 }
 
+export type MultipleChoiceQuestion = {
+  id: string
+  type: 'multiple_choice'
+  prompt: string
+  options: string[]
+}
+
 export type Question =
   | WordCloudQuestion
   | TokenAllocationQuestion
@@ -48,6 +55,7 @@ export type Question =
   | CoordPlotQuestion
   | RankingQuestion
   | ReactQuestion
+  | MultipleChoiceQuestion
 
 export const TYPE_LABELS: Record<Question['type'], string> = {
   word_cloud: 'Word Cloud',
@@ -56,4 +64,5 @@ export const TYPE_LABELS: Record<Question['type'], string> = {
   coord_plot: 'Coordinate Plot',
   ranking: 'Ranking',
   react: 'React',
+  multiple_choice: 'Multiple Choice',
 }

@@ -10,6 +10,7 @@ import { ParticipantPictionary } from '@/components/participant/ParticipantPicti
 import { ParticipantCoordPlot } from '@/components/participant/ParticipantCoordPlot'
 import { ParticipantRanking } from '@/components/participant/ParticipantRanking'
 import { ParticipantReact } from '@/components/participant/ParticipantReact'
+import { ParticipantMultipleChoice } from '@/components/participant/ParticipantMultipleChoice'
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>()
@@ -176,6 +177,17 @@ export default function JoinPage() {
               items={currentQuestion.items}
               onSubmit={(reactions) =>
                 sendAnswer({ type: 'react', questionId: currentQuestion.id, reactions, participantName: name })
+              }
+            />
+          )}
+
+          {currentQuestion.type === 'multiple_choice' && (
+            <ParticipantMultipleChoice
+              key={currentQuestion.id}
+              prompt={currentQuestion.prompt}
+              options={currentQuestion.options}
+              onSubmit={(option) =>
+                sendAnswer({ type: 'multiple_choice', questionId: currentQuestion.id, option, participantName: name })
               }
             />
           )}

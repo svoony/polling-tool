@@ -19,6 +19,7 @@ const PLACEHOLDERS: Record<QType, string> = {
   coord_plot: 'e.g. Where do you fall on this scale?',
   ranking: 'e.g. Rank these from best to worst',
   react: 'e.g. React to each of these items',
+  multiple_choice: 'e.g. Which option do you prefer?',
 }
 
 export default function Home() {
@@ -46,6 +47,9 @@ export default function Home() {
   // React
   const [reactItems, setReactItems] = useState([''])
 
+  // Multiple choice
+  const [mcOptions, setMcOptions] = useState(['', ''])
+
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -58,6 +62,7 @@ export default function Home() {
     setYHigh('')
     setRankOptions(['', ''])
     setReactItems([''])
+    setMcOptions(['', ''])
   }
 
   function isFormValid(): boolean {
@@ -66,6 +71,7 @@ export default function Home() {
     if (type === 'coord_plot') return !!(xLow.trim() && xHigh.trim() && yLow.trim() && yHigh.trim())
     if (type === 'ranking') return rankOptions.filter((o) => o.trim()).length >= 2
     if (type === 'react') return reactItems.filter((i) => i.trim()).length >= 1
+    if (type === 'multiple_choice') return mcOptions.filter((o) => o.trim()).length >= 2
     return true
   }
 
@@ -82,8 +88,10 @@ export default function Home() {
       q = { id: crypto.randomUUID(), type: 'coord_plot', prompt: prompt.trim(), xLow: xLow.trim(), xHigh: xHigh.trim(), yLow: yLow.trim(), yHigh: yHigh.trim() }
     } else if (type === 'ranking') {
       q = { id: crypto.randomUUID(), type: 'ranking', prompt: prompt.trim(), options: rankOptions.filter((o) => o.trim()) }
-    } else {
+    } else if (type === 'react') {
       q = { id: crypto.randomUUID(), type: 'react', prompt: prompt.trim(), items: reactItems.filter((i) => i.trim()) }
+    } else {
+      q = { id: crypto.randomUUID(), type: 'multiple_choice', prompt: prompt.trim(), options: mcOptions.filter((o) => o.trim()) }
     }
     setQuestions((prev) => [...prev, q])
     resetFields()
@@ -143,6 +151,9 @@ export default function Home() {
                   {q.type === 'react' && (
                     <p className="text-zinc-500 text-xs mt-0.5">{q.items.join(' · ')}</p>
                   )}
+                  {q.type === 'multiple_choice' && (
+                    <p className="text-zinc-500 text-xs mt-0.5">{q.options.join(' · ')}</p>
+                  )}
                 </div>
                 <button
                   onClick={() => removeQuestion(q.id)}
@@ -161,9 +172,9 @@ export default function Home() {
             {questions.length === 0 ? 'Add your first question' : 'Add another question'}
           </p>
 
-          {/* Type selector — 2 rows of 3 */}
+          {/* Type selector */}
           <div className="grid grid-cols-3 gap-2">
-            {(['word_cloud', 'token_allocation', 'pictionary', 'coord_plot', 'ranking', 'react'] as QType[]).map((t) => (
+            {(['word_cloud', 'token_allocation', 'pictionary', 'coord_plot', 'ranking', 'react', 'multiple_choice'] as QType[]).map((t) => (
               <button
                 key={t}
                 onClick={() => { setType(t); resetFields() }}
@@ -185,7 +196,7 @@ export default function Home() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {
-              const noEnter: QType[] = ['token_allocation', 'coord_plot', 'ranking', 'react']
+              const noEnter: QType[] = ['token_allocation', 'coord_plot', 'ranking', 'react', 'multiple_choice']
               if (e.key === 'Enter' && !noEnter.includes(type)) addQuestion()
             }}
             maxLength={120}
@@ -363,6 +374,44 @@ export default function Home() {
                   className="text-[#FFE600] text-sm text-left hover:underline"
                 >
                   + Add item
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Multiple choice options */}
+          {type === 'multiple_choice' && (
+            <div className="flex flex-col gap-2">
+              <p className="text-zinc-400 text-sm">Options (min 2, max 10)</p>
+              {mcOptions.map((o, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm"
+                    placeholder={`Option ${i + 1}`}
+                    value={o}
+                    onChange={(e) => {
+                      const next = [...mcOptions]
+                      next[i] = e.target.value
+                      setMcOptions(next)
+                    }}
+                    maxLength={80}
+                  />
+                  {mcOptions.length > 2 && (
+                    <button
+                      onClick={() => setMcOptions((prev) => prev.filter((_, j) => j !== i))}
+                      className="text-zinc-500 hover:text-red-400 px-2 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              {mcOptions.length < 10 && (
+                <button
+                  onClick={() => setMcOptions((prev) => [...prev, ''])}
+                  className="text-[#FFE600] text-sm text-left hover:underline"
+                >
+                  + Add option
                 </button>
               )}
             </div>
