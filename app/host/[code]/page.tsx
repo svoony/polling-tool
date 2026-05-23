@@ -51,10 +51,21 @@ export default function HostPage() {
     setJoinUrl(`${window.location.origin}/join/${code}`)
   }, [code])
 
-  // Load questions from sessionStorage
+  // Load questions — sessionStorage first (same tab, instant), DB fallback (new tab / reopened)
   useEffect(() => {
     const stored = sessionStorage.getItem(`session_${code}`)
-    if (stored) setQuestions(JSON.parse(stored))
+    if (stored) {
+      setQuestions(JSON.parse(stored))
+      return
+    }
+    supabase
+      .from('sessions')
+      .select('questions')
+      .eq('code', code)
+      .single()
+      .then(({ data }) => {
+        if (data?.questions) setQuestions(data.questions)
+      })
   }, [code])
 
   // Presence channel — participant list + late-joiner re-broadcast

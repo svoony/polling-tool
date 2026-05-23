@@ -106,7 +106,7 @@ export default function Home() {
     setCreating(true)
     setError('')
     const code = generateCode()
-    const { error: err } = await supabase.from('sessions').insert({ code })
+    const { error: err } = await supabase.from('sessions').insert({ code, questions })
     if (err) {
       setError('Failed to create session. Check your connection.')
       setCreating(false)
