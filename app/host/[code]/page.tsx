@@ -161,6 +161,26 @@ export default function HostPage() {
     setPhase('active')
   }
 
+  async function resetSession() {
+    // Wipe all responses
+    setAllWordCloudWords({})
+    setAllTokenTotals({})
+    setAllPictionaryDrawings({})
+    setAllCoordPoints({})
+    setAllRankingScores({})
+    setAllReactionCounts({})
+    setAllMcVotes({})
+    setComparisonChoices({})
+    setCompareOpen(false)
+    // Re-broadcast question 1 to participants
+    const payload = buildPayload(0, questions)
+    await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.QUESTION_START, payload })
+    currentPayloadRef.current = payload
+    currentIndexRef.current = 0
+    setCurrentIndex(0)
+    setPhase('active')
+  }
+
   async function goToIndex(newIndex: number) {
     if (newIndex < 0 || newIndex >= questions.length) return
     const payload = buildPayload(newIndex, questions)
@@ -346,12 +366,26 @@ export default function HostPage() {
                 {questions.length} question{questions.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <button
-              onClick={() => window.print()}
-              className="bg-[#FFE600] text-zinc-900 font-black px-6 py-3 rounded-xl hover:bg-[#FFD900] transition-colors text-lg"
-            >
-              Save as PDF ↓
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setPhase('active')}
+                className="bg-zinc-800 text-white font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
+              >
+                ← Back to Questions
+              </button>
+              <button
+                onClick={resetSession}
+                className="bg-zinc-800 text-red-400 font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
+              >
+                Reset Session
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="bg-[#FFE600] text-zinc-900 font-black px-6 py-3 rounded-xl hover:bg-[#FFD900] transition-colors text-lg"
+              >
+                Save as PDF ↓
+              </button>
+            </div>
           </div>
 
           {/* Print-only header */}
