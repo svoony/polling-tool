@@ -58,6 +58,11 @@ export default function JoinPage() {
         setCurrentQuestion(null)
         setSessionEnded(true)
       })
+      .on('broadcast', { event: EVENTS.SESSION_RESET }, () => {
+        console.log('[participant] session:reset')
+        setCurrentQuestion(null)
+        setSessionEnded(false)
+      })
       .subscribe((status) => console.log('[participant] game channel:', status))
     gameChannelRef.current = channel
     return () => { supabase.removeChannel(channel) }

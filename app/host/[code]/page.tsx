@@ -183,13 +183,12 @@ export default function HostPage() {
     setAllMcVotes({})
     setComparisonChoices({})
     setCompareOpen(false)
-    // Re-broadcast question 1 to participants
-    const payload = buildPayload(0, questions)
-    await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.QUESTION_START, payload })
-    currentPayloadRef.current = payload
+    // Send participants back to the waiting screen
+    await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.SESSION_RESET, payload: {} })
+    currentPayloadRef.current = null
     currentIndexRef.current = 0
     setCurrentIndex(0)
-    setPhase('active')
+    setPhase('lobby')
   }
 
   async function goToIndex(newIndex: number) {

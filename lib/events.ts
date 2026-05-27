@@ -4,6 +4,7 @@ export const EVENTS = {
   QUESTION_START: 'question:start',
   ANSWER_SUBMIT:  'answer:submit',
   SESSION_END:    'session:end',
+  SESSION_RESET:  'session:reset',
 } as const
 
 // Sent by host when starting or advancing to a question
