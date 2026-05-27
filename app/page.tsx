@@ -248,23 +248,19 @@ export default function Home() {
               {/* Row: Y-label column + grid */}
               <div className="flex gap-3 items-stretch">
                 {/* Y labels — left of grid, top = high, bottom = low */}
-                <div className="flex flex-col justify-between w-24 shrink-0 gap-2">
+                <div className="flex flex-col w-24 shrink-0 gap-2">
                   <textarea
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none overflow-hidden"
+                    className="flex-1 w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none"
                     placeholder="Y high (top)"
-                    rows={1}
                     value={yHigh}
                     onChange={(e) => setYHigh(e.target.value)}
-                    onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
                     maxLength={50}
                   />
                   <textarea
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none overflow-hidden"
+                    className="flex-1 w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none"
                     placeholder="Y low (bottom)"
-                    rows={1}
                     value={yLow}
                     onChange={(e) => setYLow(e.target.value)}
-                    onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
                     maxLength={50}
                   />
                 </div>
