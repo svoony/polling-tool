@@ -379,7 +379,12 @@ export default function HostPage() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setPhase('active')}
+                onClick={async () => {
+                  const payload = buildPayload(currentIndex, questions)
+                  await gameChannelRef.current?.send({ type: 'broadcast', event: EVENTS.QUESTION_START, payload })
+                  currentPayloadRef.current = payload
+                  setPhase('active')
+                }}
                 className="bg-zinc-800 text-white font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
               >
                 ← Back to Questions

@@ -51,6 +51,7 @@ export default function JoinPage() {
       .on('broadcast', { event: EVENTS.QUESTION_START }, ({ payload }: { payload: QuestionStartPayload }) => {
         console.log('[participant] question:start', payload)
         setCurrentQuestion(payload)
+        setSessionEnded(false)
       })
       .on('broadcast', { event: EVENTS.SESSION_END }, () => {
         console.log('[participant] session:end')
