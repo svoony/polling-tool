@@ -5,8 +5,15 @@ import { useParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
 import { supabase } from '@/lib/supabase'
 import { EVENTS, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
-import { TYPE_LABELS, type Question } from '@/lib/questions'
+import { TYPE_LABELS, questionDetail, type Question } from '@/lib/questions'
 import { buildResultsCsv } from '@/lib/csv'
+import {
+  QuestionForm,
+  draftFromQuestion,
+  isDraftValid,
+  questionFromDraft,
+  type QuestionDraft,
+} from '@/components/QuestionForm'
 import { HostWordCloud } from '@/components/host/HostWordCloud'
 import { HostTokenAllocation } from '@/components/host/HostTokenAllocation'
 import { HostPictionary } from '@/components/host/HostPictionary'
@@ -26,6 +33,11 @@ export default function HostPage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [phase, setPhase] = useState<Phase>('lobby')
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  // Lobby question editing — only one question is editable at a time
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState<QuestionDraft | null>(null)
+  const [editError, setEditError] = useState('')
 
   // Per-question answer storage — keyed by question index
   const [allWordCloudWords, setAllWordCloudWords] = useState<Record<number, string[]>>({})
@@ -242,6 +254,41 @@ export default function HostPage() {
     setComparisonChoices((prev) => ({ ...prev, [currentIndex]: idx }))
   }
 
+  // ── Lobby question editing ───────────────────────────────────────────────────
+  function startEditing(q: Question) {
+    setEditingId(q.id)
+    setEditDraft(draftFromQuestion(q))
+    setEditError('')
+  }
+
+  function cancelEditing() {
+    setEditingId(null)
+    setEditDraft(null)
+    setEditError('')
+  }
+
+  async function saveEditing() {
+    if (!editingId || !editDraft || !isDraftValid(editDraft)) return
+    const edited = questionFromDraft(editDraft, editingId)
+    const next = questions.map((q) => (q.id === editingId ? edited : q))
+    setQuestions(next)
+    setEditingId(null)
+    setEditDraft(null)
+    // Keep both copies the host page reads on load in sync with the edit
+    sessionStorage.setItem(`session_${code}`, JSON.stringify(next))
+    // .select() so a row blocked by RLS comes back as an empty array rather than a silent no-op
+    const { data, error } = await supabase
+      .from('sessions')
+      .update({ questions: next })
+      .eq('code', code)
+      .select('code')
+    setEditError(
+      error || !data?.length
+        ? 'Edit applied here, but it could not be saved to the server — it will be lost if this page is reloaded.'
+        : ''
+    )
+  }
+
   function exportCsv() {
     const csv = buildResultsCsv(questions, {
       wordCloudWords: allWordCloudWords,
@@ -354,26 +401,65 @@ export default function HostPage() {
             </div>
           </div>
 
-          {/* Question preview */}
+          {/* Question preview — each question is editable until the session starts */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-3">
             <p className="text-zinc-500 text-xs uppercase tracking-widest">
               {questions.length} question{questions.length !== 1 ? 's' : ''} queued
             </p>
-            {questions.map((q, i) => (
-              <div key={q.id} className="flex items-center gap-3 text-sm">
-                <span className="text-[#FFE600] font-bold w-5 shrink-0">{i + 1}</span>
-                <span className="text-zinc-500 shrink-0">{TYPE_LABELS[q.type]}</span>
-                <span className="text-white">— {q.prompt}</span>
-              </div>
-            ))}
+            {questions.map((q, i) =>
+              editingId === q.id && editDraft ? (
+                <div key={q.id} className="bg-zinc-950 border border-zinc-700 rounded-xl p-4 flex flex-col gap-4">
+                  <p className="text-zinc-500 text-xs uppercase tracking-widest">Editing question {i + 1}</p>
+                  <QuestionForm draft={editDraft} onChange={setEditDraft} onSubmit={saveEditing} />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveEditing}
+                      disabled={!isDraftValid(editDraft)}
+                      className="flex-1 bg-[#FFE600] text-zinc-900 font-black rounded-xl py-2 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEditing}
+                      className="flex-1 bg-zinc-800 text-white font-bold rounded-xl py-2 hover:bg-zinc-700 transition-colors border border-zinc-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div key={q.id} className="flex items-start gap-3 text-sm">
+                  <span className="text-[#FFE600] font-bold w-5 shrink-0">{i + 1}</span>
+                  <span className="text-zinc-500 shrink-0">{TYPE_LABELS[q.type]}</span>
+                  <span className="text-white min-w-0 flex-1">
+                    — {q.prompt}
+                    {questionDetail(q) && (
+                      <span className="block text-zinc-500 text-xs mt-0.5">{questionDetail(q)}</span>
+                    )}
+                  </span>
+                  <button
+                    onClick={() => startEditing(q)}
+                    disabled={editingId !== null}
+                    className="text-zinc-500 hover:text-[#FFE600] text-xs shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                  >
+                    Edit
+                  </button>
+                </div>
+              )
+            )}
+            {editError && <p className="text-red-400 text-xs">{editError}</p>}
           </div>
 
           <button
             onClick={startSession}
-            disabled={participants.length === 0 || questions.length === 0}
+            disabled={participants.length === 0 || questions.length === 0 || editingId !== null}
             className="w-full bg-[#FFE600] text-zinc-900 font-black text-xl rounded-2xl py-4 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            {participants.length === 0 ? 'Waiting for participants...' : 'Start Session →'}
+            {editingId !== null
+              ? 'Finish editing to start'
+              : participants.length === 0
+              ? 'Waiting for participants...'
+              : 'Start Session →'}
           </button>
 
         </div>

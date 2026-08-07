@@ -20,6 +20,8 @@ alter table participants enable row level security;
 
 create policy "Anyone can read sessions"    on sessions    for select using (true);
 create policy "Anyone can create sessions"  on sessions    for insert with check (true);
+-- Needed so the host can edit questions from the lobby screen
+create policy "Anyone can update sessions"  on sessions    for update using (true) with check (true);
 create policy "Anyone can read participants" on participants for select using (true);
 create policy "Anyone can join"             on participants for insert with check (true);
 
