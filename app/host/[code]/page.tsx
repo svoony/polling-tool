@@ -6,6 +6,7 @@ import QRCode from 'react-qr-code'
 import { supabase } from '@/lib/supabase'
 import { EVENTS, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
 import { TYPE_LABELS, type Question } from '@/lib/questions'
+import { buildResultsCsv } from '@/lib/csv'
 import { HostWordCloud } from '@/components/host/HostWordCloud'
 import { HostTokenAllocation } from '@/components/host/HostTokenAllocation'
 import { HostPictionary } from '@/components/host/HostPictionary'
@@ -241,6 +242,25 @@ export default function HostPage() {
     setComparisonChoices((prev) => ({ ...prev, [currentIndex]: idx }))
   }
 
+  function exportCsv() {
+    const csv = buildResultsCsv(questions, {
+      wordCloudWords: allWordCloudWords,
+      tokenTotals: allTokenTotals,
+      coordPoints: allCoordPoints,
+      rankingScores: allRankingScores,
+      reactionCounts: allReactionCounts,
+      mcVotes: allMcVotes,
+    })
+    // BOM so Excel reads the UTF-8 (emoji reactions, accented words) correctly
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `event-lobby-${code}-results.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // Render a result panel for a given question index (used for both top and bottom halves)
   function renderResults(qIdx: number) {
     const q = questions[qIdx] as Question | undefined
@@ -393,6 +413,12 @@ export default function HostPage() {
                 className="bg-zinc-800 text-red-400 font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
               >
                 Reset Session
+              </button>
+              <button
+                onClick={exportCsv}
+                className="bg-zinc-800 text-white font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
+              >
+                Export CSV ↓
               </button>
               <button
                 onClick={() => window.print()}
