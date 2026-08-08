@@ -46,6 +46,8 @@ export type MultipleChoiceQuestion = {
   type: 'multiple_choice'
   prompt: string
   options: string[]
+  /** When true participants may pick several options. Absent on questions built before this existed. */
+  multiSelect?: boolean
 }
 
 export type Question =
@@ -63,7 +65,9 @@ export function questionDetail(q: Question): string {
   if (q.type === 'coord_plot') return `X: ${q.xLow} → ${q.xHigh} · Y: ${q.yLow} → ${q.yHigh}`
   if (q.type === 'ranking') return q.options.join(' · ')
   if (q.type === 'react') return q.items.join(' · ')
-  if (q.type === 'multiple_choice') return q.options.join(' · ')
+  if (q.type === 'multiple_choice') {
+    return q.options.join(' · ') + (q.multiSelect ? '  —  multi-select' : '')
+  }
   return ''
 }
 

@@ -10,6 +10,7 @@ import { buildResultsCsv } from '@/lib/csv'
 import {
   QuestionForm,
   draftFromQuestion,
+  emptyDraft,
   isDraftValid,
   questionFromDraft,
   type QuestionDraft,
@@ -34,8 +35,9 @@ export default function HostPage() {
   const [phase, setPhase] = useState<Phase>('lobby')
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  // Lobby question editing — only one question is editable at a time
-  const [editingId, setEditingId] = useState<string | null>(null)
+  // Lobby question editing — at most one form (edit or add) is open at a time
+  type EditTarget = { kind: 'edit'; id: string } | { kind: 'add' }
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null)
   const [editDraft, setEditDraft] = useState<QuestionDraft | null>(null)
   const [editError, setEditError] = useState('')
 
@@ -146,8 +148,12 @@ export default function HostPage() {
           })
         } else if (payload.type === 'multiple_choice') {
           setAllMcVotes((prev) => {
-            const prevVotes = prev[idx] ?? {}
-            return { ...prev, [idx]: { ...prevVotes, [payload.option]: (prevVotes[payload.option] ?? 0) + 1 } }
+            const next = { ...(prev[idx] ?? {}) }
+            // One option for a single-answer question, several when it is multi-select
+            for (const option of payload.options) {
+              next[option] = (next[option] ?? 0) + 1
+            }
+            return { ...prev, [idx]: next }
           })
         } else if (payload.type === 'react') {
           setAllReactionCounts((prev) => {
@@ -255,26 +261,9 @@ export default function HostPage() {
   }
 
   // ── Lobby question editing ───────────────────────────────────────────────────
-  function startEditing(q: Question) {
-    setEditingId(q.id)
-    setEditDraft(draftFromQuestion(q))
-    setEditError('')
-  }
-
-  function cancelEditing() {
-    setEditingId(null)
-    setEditDraft(null)
-    setEditError('')
-  }
-
-  async function saveEditing() {
-    if (!editingId || !editDraft || !isDraftValid(editDraft)) return
-    const edited = questionFromDraft(editDraft, editingId)
-    const next = questions.map((q) => (q.id === editingId ? edited : q))
+  /** Applies a new question list everywhere the host page reads it from. */
+  async function persistQuestions(next: Question[]) {
     setQuestions(next)
-    setEditingId(null)
-    setEditDraft(null)
-    // Keep both copies the host page reads on load in sync with the edit
     sessionStorage.setItem(`session_${code}`, JSON.stringify(next))
     // .select() so a row blocked by RLS comes back as an empty array rather than a silent no-op
     const { data, error } = await supabase
@@ -284,9 +273,51 @@ export default function HostPage() {
       .select('code')
     setEditError(
       error || !data?.length
-        ? 'Edit applied here, but it could not be saved to the server — it will be lost if this page is reloaded.'
+        ? 'Change applied here, but it could not be saved to the server — it will be lost if this page is reloaded.'
         : ''
     )
+  }
+
+  function startEditing(q: Question) {
+    setEditTarget({ kind: 'edit', id: q.id })
+    setEditDraft(draftFromQuestion(q))
+    setEditError('')
+  }
+
+  function startAdding() {
+    setEditTarget({ kind: 'add' })
+    setEditDraft(emptyDraft('word_cloud'))
+    setEditError('')
+  }
+
+  function cancelEditing() {
+    setEditTarget(null)
+    setEditDraft(null)
+    setEditError('')
+  }
+
+  async function saveDraft() {
+    if (!editTarget || !editDraft || !isDraftValid(editDraft)) return
+    const next =
+      editTarget.kind === 'add'
+        ? [...questions, questionFromDraft(editDraft, crypto.randomUUID())]
+        : questions.map((q) => (q.id === editTarget.id ? questionFromDraft(editDraft, editTarget.id) : q))
+    setEditTarget(null)
+    setEditDraft(null)
+    await persistQuestions(next)
+  }
+
+  async function deleteQuestion(id: string) {
+    await persistQuestions(questions.filter((q) => q.id !== id))
+  }
+
+  /** Swaps a question with its neighbour; `delta` is -1 to move up, +1 to move down. */
+  async function moveQuestion(index: number, delta: number) {
+    const target = index + delta
+    if (target < 0 || target >= questions.length) return
+    const next = [...questions]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    await persistQuestions(next)
   }
 
   function exportCsv() {
@@ -347,7 +378,14 @@ export default function HostPage() {
       return <HostReact prompt={q.prompt} items={q.items} counts={allReactionCounts[qIdx] ?? {}} />
     }
     if (q.type === 'multiple_choice') {
-      return <HostMultipleChoice prompt={q.prompt} options={q.options} votes={allMcVotes[qIdx] ?? {}} />
+      return (
+        <HostMultipleChoice
+          prompt={q.prompt}
+          options={q.options}
+          votes={allMcVotes[qIdx] ?? {}}
+          multiSelect={q.multiSelect}
+        />
+      )
     }
     return null
   }
@@ -406,14 +444,17 @@ export default function HostPage() {
             <p className="text-zinc-500 text-xs uppercase tracking-widest">
               {questions.length} question{questions.length !== 1 ? 's' : ''} queued
             </p>
+            {questions.length === 0 && (
+              <p className="text-zinc-500 text-sm">No questions left — add one below to start the session.</p>
+            )}
             {questions.map((q, i) =>
-              editingId === q.id && editDraft ? (
+              editTarget?.kind === 'edit' && editTarget.id === q.id && editDraft ? (
                 <div key={q.id} className="bg-zinc-950 border border-zinc-700 rounded-xl p-4 flex flex-col gap-4">
                   <p className="text-zinc-500 text-xs uppercase tracking-widest">Editing question {i + 1}</p>
-                  <QuestionForm draft={editDraft} onChange={setEditDraft} onSubmit={saveEditing} />
+                  <QuestionForm draft={editDraft} onChange={setEditDraft} onSubmit={saveDraft} />
                   <div className="flex gap-2">
                     <button
-                      onClick={saveEditing}
+                      onClick={saveDraft}
                       disabled={!isDraftValid(editDraft)}
                       className="flex-1 bg-[#FFE600] text-zinc-900 font-black rounded-xl py-2 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
@@ -437,26 +478,86 @@ export default function HostPage() {
                       <span className="block text-zinc-500 text-xs mt-0.5">{questionDetail(q)}</span>
                     )}
                   </span>
-                  <button
-                    onClick={() => startEditing(q)}
-                    disabled={editingId !== null}
-                    className="text-zinc-500 hover:text-[#FFE600] text-xs shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
-                  >
-                    Edit
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => moveQuestion(i, -1)}
+                      disabled={editTarget !== null || i === 0}
+                      title="Move up"
+                      className="text-zinc-500 hover:text-[#FFE600] px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() => moveQuestion(i, 1)}
+                      disabled={editTarget !== null || i === questions.length - 1}
+                      title="Move down"
+                      className="text-zinc-500 hover:text-[#FFE600] px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      onClick={() => startEditing(q)}
+                      disabled={editTarget !== null}
+                      className="text-zinc-500 hover:text-[#FFE600] text-xs px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteQuestion(q.id)}
+                      disabled={editTarget !== null}
+                      title="Delete question"
+                      className="text-zinc-500 hover:text-red-400 text-xs px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               )
             )}
+
+            {/* Add a question */}
+            {editTarget?.kind === 'add' && editDraft ? (
+              <div className="bg-zinc-950 border border-zinc-700 rounded-xl p-4 flex flex-col gap-4">
+                <p className="text-zinc-500 text-xs uppercase tracking-widest">New question</p>
+                <QuestionForm draft={editDraft} onChange={setEditDraft} onSubmit={saveDraft} />
+                <div className="flex gap-2">
+                  <button
+                    onClick={saveDraft}
+                    disabled={!isDraftValid(editDraft)}
+                    className="flex-1 bg-[#FFE600] text-zinc-900 font-black rounded-xl py-2 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add Question
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    className="flex-1 bg-zinc-800 text-white font-bold rounded-xl py-2 hover:bg-zinc-700 transition-colors border border-zinc-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={startAdding}
+                disabled={editTarget !== null}
+                className="text-[#FFE600] text-sm text-left hover:underline disabled:opacity-30 disabled:cursor-not-allowed disabled:no-underline"
+              >
+                + Add question
+              </button>
+            )}
+
             {editError && <p className="text-red-400 text-xs">{editError}</p>}
           </div>
 
           <button
             onClick={startSession}
-            disabled={participants.length === 0 || questions.length === 0 || editingId !== null}
+            disabled={participants.length === 0 || questions.length === 0 || editTarget !== null}
             className="w-full bg-[#FFE600] text-zinc-900 font-black text-xl rounded-2xl py-4 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            {editingId !== null
+            {editTarget !== null
               ? 'Finish editing to start'
+              : questions.length === 0
+              ? 'Add a question to start'
               : participants.length === 0
               ? 'Waiting for participants...'
               : 'Start Session →'}

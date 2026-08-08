@@ -192,8 +192,9 @@ export default function JoinPage() {
               key={currentQuestion.id}
               prompt={currentQuestion.prompt}
               options={currentQuestion.options}
-              onSubmit={(option) =>
-                sendAnswer({ type: 'multiple_choice', questionId: currentQuestion.id, option, participantName: name })
+              multiSelect={currentQuestion.multiSelect}
+              onSubmit={(options) =>
+                sendAnswer({ type: 'multiple_choice', questionId: currentQuestion.id, options, participantName: name })
               }
             />
           )}

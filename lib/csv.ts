@@ -87,7 +87,9 @@ export function buildResultsCsv(questions: Question[], data: ResultsSnapshot): s
 
     if (q.type === 'multiple_choice') {
       const votes = data.mcVotes[i] ?? {}
-      q.options.forEach((opt) => add(opt, '', 'votes', votes[opt] ?? 0))
+      // Multi-select counts are selections, not one-per-person votes — name them accordingly
+      const metric = q.multiSelect ? 'selections' : 'votes'
+      q.options.forEach((opt) => add(opt, '', metric, votes[opt] ?? 0))
     }
   })
 

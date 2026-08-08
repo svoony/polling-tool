@@ -17,6 +17,7 @@ export type QuestionDraft = {
   rankOptions: string[]
   reactItems: string[]
   mcOptions: string[]
+  mcMultiSelect: boolean
 }
 
 export const QUESTION_TYPES: QType[] = [
@@ -54,6 +55,7 @@ export function emptyDraft(type: QType): QuestionDraft {
     rankOptions: ['', ''],
     reactItems: [''],
     mcOptions: ['', ''],
+    mcMultiSelect: false,
   }
 }
 
@@ -69,7 +71,10 @@ export function draftFromQuestion(q: Question): QuestionDraft {
   }
   if (q.type === 'ranking') draft.rankOptions = [...q.options]
   if (q.type === 'react') draft.reactItems = [...q.items]
-  if (q.type === 'multiple_choice') draft.mcOptions = [...q.options]
+  if (q.type === 'multiple_choice') {
+    draft.mcOptions = [...q.options]
+    draft.mcMultiSelect = q.multiSelect ?? false
+  }
   return draft
 }
 
@@ -107,7 +112,13 @@ export function questionFromDraft(d: QuestionDraft, id: string): Question {
     return { id, type: 'react', prompt, items: d.reactItems.filter((i) => i.trim()) }
   }
   if (d.type === 'multiple_choice') {
-    return { id, type: 'multiple_choice', prompt, options: d.mcOptions.filter((o) => o.trim()) }
+    return {
+      id,
+      type: 'multiple_choice',
+      prompt,
+      options: d.mcOptions.filter((o) => o.trim()),
+      multiSelect: d.mcMultiSelect,
+    }
   }
   return { id, type: d.type, prompt }
 }
@@ -298,16 +309,37 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
       )}
 
       {draft.type === 'multiple_choice' && (
-        <ListField
-          label="Options (min 2, max 10)"
-          values={draft.mcOptions}
-          min={2}
-          max={10}
-          addLabel="+ Add option"
-          itemLabel="Option"
-          maxLength={80}
-          onChange={(mcOptions) => set({ mcOptions })}
-        />
+        <>
+          <ListField
+            label="Options (min 2, max 10)"
+            values={draft.mcOptions}
+            min={2}
+            max={10}
+            addLabel="+ Add option"
+            itemLabel="Option"
+            maxLength={80}
+            onChange={(mcOptions) => set({ mcOptions })}
+          />
+
+          <div className="flex flex-col gap-2">
+            <p className="text-zinc-400 text-sm">How many answers can each participant pick?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([false, true] as const).map((multi) => (
+                <button
+                  key={String(multi)}
+                  onClick={() => set({ mcMultiSelect: multi })}
+                  className={`py-2 px-3 rounded-xl text-sm font-bold transition-colors ${
+                    draft.mcMultiSelect === multi
+                      ? 'bg-[#FFE600] text-zinc-900'
+                      : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                  }`}
+                >
+                  {multi ? 'Multiple answers' : 'Single answer'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </>
   )

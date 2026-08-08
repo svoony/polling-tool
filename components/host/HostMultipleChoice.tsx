@@ -4,18 +4,24 @@ type Props = {
   prompt: string
   options: string[]
   votes: Record<string, number>
+  multiSelect?: boolean
 }
 
-export function HostMultipleChoice({ prompt, options, votes }: Props) {
+export function HostMultipleChoice({ prompt, options, votes, multiSelect = false }: Props) {
   const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0)
   const maxVotes = Math.max(...options.map((o) => votes[o] ?? 0), 1)
+  // With multi-select one person contributes several votes, so a share of the total
+  // no longer reads as "share of the room" — show plain counts instead.
+  const showPct = !multiSelect && totalVotes > 0
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between">
         <h2 className="text-white font-black text-2xl">{prompt}</h2>
         <span className="text-zinc-500 text-sm shrink-0 ml-4">
-          {totalVotes} response{totalVotes !== 1 ? 's' : ''}
+          {multiSelect
+            ? `${totalVotes} selection${totalVotes !== 1 ? 's' : ''}`
+            : `${totalVotes} response${totalVotes !== 1 ? 's' : ''}`}
         </span>
       </div>
 
@@ -29,7 +35,7 @@ export function HostMultipleChoice({ prompt, options, votes }: Props) {
               <div className="flex items-center justify-between gap-3">
                 <span className="text-zinc-200 text-sm font-bold">{option}</span>
                 <span className="text-zinc-400 text-sm shrink-0">
-                  {count} {totalVotes > 0 && `(${Math.round(pct)}%)`}
+                  {count} {showPct && `(${Math.round(pct)}%)`}
                 </span>
               </div>
               <div className="w-full bg-zinc-800 rounded-full h-5 overflow-hidden">

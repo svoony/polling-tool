@@ -60,7 +60,8 @@ export type ReactAnswerPayload = {
 export type MultipleChoiceAnswerPayload = {
   type: 'multiple_choice'
   questionId: string
-  option: string
+  /** One entry for a single-answer question, one or more when the question is multi-select */
+  options: string[]
   participantName: string
 }
 
