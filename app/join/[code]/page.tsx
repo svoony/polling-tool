@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { EVENTS, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
+import { EVENTS, topics, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
 import { ParticipantWordCloud } from '@/components/participant/ParticipantWordCloud'
 import { ParticipantTokenAllocation } from '@/components/participant/ParticipantTokenAllocation'
 import { ParticipantPictionary } from '@/components/participant/ParticipantPictionary'
@@ -11,6 +11,9 @@ import { ParticipantCoordPlot } from '@/components/participant/ParticipantCoordP
 import { ParticipantRanking } from '@/components/participant/ParticipantRanking'
 import { ParticipantReact } from '@/components/participant/ParticipantReact'
 import { ParticipantMultipleChoice } from '@/components/participant/ParticipantMultipleChoice'
+
+/** How long a tab must stay hidden before the participant drops off the host's list. */
+const AWAY_UNTRACK_MS = 60_000
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>()
@@ -23,22 +26,46 @@ export default function JoinPage() {
 
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // Send-only: never subscribed, so answers go out over HTTP (see sendAnswer)
+  const answersChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   // Presence channel — keeps participant in lobby while tab is open
   useEffect(() => {
     if (!joined) return
-    const channel = supabase.channel(`room:${code}`)
+    const channel = supabase.channel(topics.presence(code))
     presenceChannelRef.current = channel
     channel.subscribe(async (status) => {
       console.log('[participant] presence:', status)
       if (status === 'SUBSCRIBED') await channel.track({ name })
     })
+
+    // Untracking the moment the tab hides removes people who really left, but a phone
+    // locking in someone's hand fires the same event — and every track/untrack is a
+    // presence message to the whole room. Only drop someone who stays away.
+    let awayTimer: ReturnType<typeof setTimeout> | null = null
+    let isUntracked = false
     function handleVisibility() {
-      if (document.visibilityState === 'hidden') channel.untrack()
-      else channel.track({ name })
+      if (document.visibilityState === 'hidden') {
+        if (awayTimer) return
+        awayTimer = setTimeout(() => {
+          awayTimer = null
+          isUntracked = true
+          channel.untrack()
+        }, AWAY_UNTRACK_MS)
+        return
+      }
+      if (awayTimer) {
+        clearTimeout(awayTimer)
+        awayTimer = null
+      }
+      if (isUntracked) {
+        isUntracked = false
+        channel.track({ name })
+      }
     }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
+      if (awayTimer) clearTimeout(awayTimer)
       document.removeEventListener('visibilitychange', handleVisibility)
       supabase.removeChannel(channel)
     }
@@ -47,7 +74,7 @@ export default function JoinPage() {
   // Game channel — receives questions and session end
   useEffect(() => {
     if (!joined) return
-    const channel = supabase.channel(`game:${code}`)
+    const channel = supabase.channel(topics.game(code))
       .on('broadcast', { event: EVENTS.QUESTION_START }, ({ payload }: { payload: QuestionStartPayload }) => {
         console.log('[participant] question:start', payload)
         setCurrentQuestion(payload)
@@ -91,7 +118,13 @@ export default function JoinPage() {
 
   async function sendAnswer(payload: AnswerPayload) {
     console.log('[participant] answer:submit', payload)
-    await gameChannelRef.current?.send({
+    // Deliberately NOT subscribed: supabase-js posts over HTTP when a channel has not
+    // been joined, so this reaches the host without putting this phone on the receiving
+    // end of everyone else's answers.
+    if (!answersChannelRef.current) {
+      answersChannelRef.current = supabase.channel(topics.answers(code))
+    }
+    await answersChannelRef.current.send({
       type: 'broadcast',
       event: EVENTS.ANSWER_SUBMIT,
       payload,

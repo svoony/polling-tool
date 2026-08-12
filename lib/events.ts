@@ -7,6 +7,21 @@ export const EVENTS = {
   SESSION_RESET:  'session:reset',
 } as const
 
+/**
+ * Realtime topics, one set per session. A topic delivers every message to every
+ * subscriber, so the two directions must not share one — keep them split:
+ *
+ *  - `presence` / `game`: host → participants. Everyone subscribes; fan-out is the point.
+ *  - `answers`: participants → host. ONLY the host (or an extra results screen) subscribes.
+ *    Participants publish without subscribing, so an answer costs one delivery instead of
+ *    one per phone in the room.
+ */
+export const topics = {
+  presence: (code: string) => `room:${code}`,
+  game:     (code: string) => `game:${code}`,
+  answers:  (code: string) => `answers:${code}`,
+} as const
+
 // Sent by host when starting or advancing to a question
 export type QuestionStartPayload = Question & {
   questionIndex: number

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
 import { supabase } from '@/lib/supabase'
-import { EVENTS, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
+import { EVENTS, topics, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
 import { TYPE_LABELS, questionDetail, type Question } from '@/lib/questions'
 import { buildResultsCsv } from '@/lib/csv'
 import {
@@ -26,6 +26,9 @@ import { HostMultipleChoice } from '@/components/host/HostMultipleChoice'
 type Participant = { name: string; presence_ref: string }
 type Drawing = { name: string; url: string }
 type Phase = 'lobby' | 'active' | 'ended'
+
+/** How long to wait for a burst of joins to settle before re-sending the current question. */
+const REJOIN_REBROADCAST_MS = 1500
 
 export default function HostPage() {
   const { code } = useParams<{ code: string }>()
@@ -58,6 +61,7 @@ export default function HostPage() {
   const [compareOpen, setCompareOpen] = useState(false)
 
   const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const rejoinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentPayloadRef = useRef<QuestionStartPayload | null>(null)
   // Ref so the broadcast answer handler can always read the latest index without stale closure
   const currentIndexRef = useRef(0)
@@ -85,30 +89,49 @@ export default function HostPage() {
 
   // Presence channel — participant list + late-joiner re-broadcast
   useEffect(() => {
-    const channel = supabase.channel(`room:${code}`)
+    const channel = supabase.channel(topics.presence(code))
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState<{ name: string }>()
         const all = Object.values(state).flat().map((p) => ({ name: p.name, presence_ref: p.presence_ref }))
         setParticipants(all)
       })
-      .on('presence', { event: 'join' }, async () => {
-        if (currentPayloadRef.current) {
-          console.log('[host] late joiner — re-broadcasting current question')
+      .on('presence', { event: 'join' }, () => {
+        // A room filling up fires one join per person. Re-broadcasting on each of them
+        // sends the question to everyone N times over; coalesce a burst into one send.
+        if (!currentPayloadRef.current || rejoinTimerRef.current) return
+        rejoinTimerRef.current = setTimeout(async () => {
+          rejoinTimerRef.current = null
+          if (!currentPayloadRef.current) return
+          console.log('[host] late joiner(s) — re-broadcasting current question')
           await gameChannelRef.current?.send({
             type: 'broadcast',
             event: EVENTS.QUESTION_START,
             payload: currentPayloadRef.current,
           })
-        }
+        }, REJOIN_REBROADCAST_MS)
       })
       .subscribe((status) => console.log('[host] presence channel:', status))
 
+    return () => {
+      if (rejoinTimerRef.current) clearTimeout(rejoinTimerRef.current)
+      rejoinTimerRef.current = null
+      supabase.removeChannel(channel)
+    }
+  }, [code])
+
+  // Game channel — host → participants only (questions, end, reset). Nothing to receive here.
+  useEffect(() => {
+    const channel = supabase.channel(topics.game(code))
+      .subscribe((status) => console.log('[host] game channel:', status))
+
+    gameChannelRef.current = channel
     return () => { supabase.removeChannel(channel) }
   }, [code])
 
-  // Game channel — receives all answer types
+  // Answers channel — participants → host. Only this screen subscribes, so each answer is
+  // delivered once instead of once per phone in the room.
   useEffect(() => {
-    const channel = supabase.channel(`game:${code}`)
+    const channel = supabase.channel(topics.answers(code))
       .on('broadcast', { event: EVENTS.ANSWER_SUBMIT }, ({ payload }: { payload: AnswerPayload }) => {
         console.log('[host] answer:submit', payload)
         const idx = currentIndexRef.current
@@ -170,9 +193,8 @@ export default function HostPage() {
           })
         }
       })
-      .subscribe((status) => console.log('[host] game channel:', status))
+      .subscribe((status) => console.log('[host] answers channel:', status))
 
-    gameChannelRef.current = channel
     return () => { supabase.removeChannel(channel) }
   }, [code])
 
