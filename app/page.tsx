@@ -56,8 +56,8 @@ export default function Home() {
 
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-black text-[#FFE600]">Event Lobby</h1>
-          <p className="text-zinc-400 mt-1">Build your question set, then start the lobby.</p>
+          <h1 className="text-4xl font-black text-[#FFE600]">EYPoll</h1>
+          <p className="text-zinc-400 mt-1">Add your questions, then start the lobby.</p>
         </div>
 
         {/* Added questions */}
