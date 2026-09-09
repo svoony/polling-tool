@@ -1,4 +1,4 @@
-type Drawing = { name: string; url: string }
+type Drawing = { url: string }
 
 type Props = {
   prompt: string
@@ -21,10 +21,9 @@ export function HostPictionary({ prompt, drawings }: Props) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={d.url}
-                alt={`Drawing by ${d.name}`}
+                alt={`Drawing ${i + 1}`}
                 className="w-36 h-36 rounded-none border-2 border-ey-yellow object-cover"
               />
-              <span className="text-ey-muted text-xs">{d.name}</span>
             </div>
           ))}
         </div>

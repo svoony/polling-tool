@@ -1,6 +1,6 @@
 'use client'
 
-type Point = { x: number; y: number; name: string }
+type Point = { x: number; y: number }
 
 type Props = {
   prompt: string

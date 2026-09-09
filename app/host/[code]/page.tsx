@@ -23,8 +23,8 @@ import { HostRanking } from '@/components/host/HostRanking'
 import { HostReact } from '@/components/host/HostReact'
 import { HostMultipleChoice } from '@/components/host/HostMultipleChoice'
 
-type Participant = { name: string; presence_ref: string }
-type Drawing = { name: string; url: string }
+type Participant = { presence_ref: string }
+type Drawing = { url: string }
 type Phase = 'lobby' | 'active' | 'ended'
 
 /** How long to wait for a burst of joins to settle before re-sending the current question. */
@@ -48,7 +48,7 @@ export default function HostPage() {
   const [allWordCloudWords, setAllWordCloudWords] = useState<Record<number, string[]>>({})
   const [allTokenTotals, setAllTokenTotals] = useState<Record<number, Record<string, number>>>({})
   const [allPictionaryDrawings, setAllPictionaryDrawings] = useState<Record<number, Drawing[]>>({})
-  const [allCoordPoints, setAllCoordPoints] = useState<Record<number, Array<{ x: number; y: number; name: string }>>>({})
+  const [allCoordPoints, setAllCoordPoints] = useState<Record<number, Array<{ x: number; y: number }>>>({})
   const [allRankingScores, setAllRankingScores] = useState<Record<number, Record<string, number>>>({})
   // allReactionCounts[qIdx][item][emoji] = count
   const [allReactionCounts, setAllReactionCounts] = useState<Record<number, Record<string, Record<string, number>>>>({})
@@ -91,8 +91,8 @@ export default function HostPage() {
   useEffect(() => {
     const channel = supabase.channel(topics.presence(code))
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState<{ name: string }>()
-        const all = Object.values(state).flat().map((p) => ({ name: p.name, presence_ref: p.presence_ref }))
+        const state = channel.presenceState()
+        const all = Object.values(state).flat().map((p) => ({ presence_ref: p.presence_ref }))
         setParticipants(all)
       })
       .on('presence', { event: 'join' }, () => {
@@ -152,12 +152,12 @@ export default function HostPage() {
         } else if (payload.type === 'pictionary') {
           setAllPictionaryDrawings((prev) => ({
             ...prev,
-            [idx]: [...(prev[idx] ?? []), { name: payload.participantName, url: payload.imageDataUrl }],
+            [idx]: [...(prev[idx] ?? []), { url: payload.imageDataUrl }],
           }))
         } else if (payload.type === 'coord_plot') {
           setAllCoordPoints((prev) => ({
             ...prev,
-            [idx]: [...(prev[idx] ?? []), { x: payload.x, y: payload.y, name: payload.participantName }],
+            [idx]: [...(prev[idx] ?? []), { x: payload.x, y: payload.y }],
           }))
         } else if (payload.type === 'ranking') {
           setAllRankingScores((prev) => {
@@ -438,26 +438,15 @@ export default function HostPage() {
               <p className="text-ey-subtle text-xs break-all text-center">{joinUrl}</p>
             </div>
 
-            {/* Participants */}
+            {/* Participants — anonymous, count only */}
             <div className="bg-ey-panel border border-ey-line rounded-none p-6 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <p className="text-white font-bold text-lg">Participants</p>
-                <span className="bg-ey-field text-ey-yellow font-bold text-sm px-3 py-1 rounded-full">
-                  {participants.length}
+              <p className="text-white font-bold text-lg">Participants</p>
+              <div className="flex-1 flex flex-col items-center justify-center py-6">
+                <span className="text-ey-yellow font-black text-6xl leading-none">{participants.length}</span>
+                <span className="text-ey-subtle text-sm mt-3">
+                  {participants.length === 0 ? 'Waiting for participants...' : 'in the lobby'}
                 </span>
               </div>
-              {participants.length === 0 ? (
-                <p className="text-ey-subtle text-center py-6">Waiting for participants...</p>
-              ) : (
-                <ul className="space-y-2 overflow-y-auto max-h-48">
-                  {participants.map((p) => (
-                    <li key={p.presence_ref} className="flex items-center gap-2 bg-ey-field rounded-none px-3 py-2">
-                      <span className="w-2 h-2 bg-ey-yellow rounded-full shrink-0" />
-                      <span className="text-white text-sm">{p.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
           </div>
 

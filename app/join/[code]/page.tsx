@@ -12,31 +12,24 @@ import { ParticipantRanking } from '@/components/participant/ParticipantRanking'
 import { ParticipantReact } from '@/components/participant/ParticipantReact'
 import { ParticipantMultipleChoice } from '@/components/participant/ParticipantMultipleChoice'
 
-/** How long a tab must stay hidden before the participant drops off the host's list. */
+/** How long a tab must stay hidden before the participant drops off the host's count. */
 const AWAY_UNTRACK_MS = 60_000
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>()
-  const [name, setName] = useState('')
-  const [joined, setJoined] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [currentQuestion, setCurrentQuestion] = useState<QuestionStartPayload | null>(null)
   const [sessionEnded, setSessionEnded] = useState(false)
 
-  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
-  const gameChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   // Send-only: never subscribed, so answers go out over HTTP (see sendAnswer)
   const answersChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
-  // Presence channel — keeps participant in lobby while tab is open
+  // Presence channel — opening the link is enough to be in the lobby. No name, no form:
+  // the guest is counted as a participant the moment this page mounts.
   useEffect(() => {
-    if (!joined) return
     const channel = supabase.channel(topics.presence(code))
-    presenceChannelRef.current = channel
     channel.subscribe(async (status) => {
       console.log('[participant] presence:', status)
-      if (status === 'SUBSCRIBED') await channel.track({ name })
+      if (status === 'SUBSCRIBED') await channel.track({})
     })
 
     // Untracking the moment the tab hides removes people who really left, but a phone
@@ -60,7 +53,7 @@ export default function JoinPage() {
       }
       if (isUntracked) {
         isUntracked = false
-        channel.track({ name })
+        channel.track({})
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
@@ -69,11 +62,10 @@ export default function JoinPage() {
       document.removeEventListener('visibilitychange', handleVisibility)
       supabase.removeChannel(channel)
     }
-  }, [joined, code, name])
+  }, [code])
 
   // Game channel — receives questions and session end
   useEffect(() => {
-    if (!joined) return
     const channel = supabase.channel(topics.game(code))
       .on('broadcast', { event: EVENTS.QUESTION_START }, ({ payload }: { payload: QuestionStartPayload }) => {
         console.log('[participant] question:start', payload)
@@ -91,30 +83,8 @@ export default function JoinPage() {
         setSessionEnded(false)
       })
       .subscribe((status) => console.log('[participant] game channel:', status))
-    gameChannelRef.current = channel
     return () => { supabase.removeChannel(channel) }
-  }, [joined, code])
-
-  async function joinSession() {
-    if (!name.trim()) return
-    setLoading(true)
-    setError('')
-    const { data: session } = await supabase
-      .from('sessions').select('id').eq('code', code).single()
-    if (!session) {
-      setError('Session not found. Check the code and try again.')
-      setLoading(false)
-      return
-    }
-    const { error: insertError } = await supabase
-      .from('participants').insert({ session_id: session.id, name: name.trim() })
-    if (insertError) {
-      setError('Could not join. Please try again.')
-    } else {
-      setJoined(true)
-    }
-    setLoading(false)
-  }
+  }, [code])
 
   async function sendAnswer(payload: AnswerPayload) {
     console.log('[participant] answer:submit', payload)
@@ -138,14 +108,14 @@ export default function JoinPage() {
         <div className="text-center">
           <p className="text-5xl mb-4">🎉</p>
           <h1 className="text-2xl font-black text-ey-yellow">Session Complete</h1>
-          <p className="text-ey-muted mt-2">Thanks for participating, {name}!</p>
+          <p className="text-ey-muted mt-2">Thanks for participating!</p>
         </div>
       </main>
     )
   }
 
   // ── ACTIVE QUESTION ───────────────────────────────────────────────────────
-  if (joined && currentQuestion) {
+  if (currentQuestion) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
         <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-6">
@@ -158,7 +128,7 @@ export default function JoinPage() {
               key={currentQuestion.id}
               prompt={currentQuestion.prompt}
               onSubmit={(word) =>
-                sendAnswer({ type: 'word_cloud', questionId: currentQuestion.id, word, participantName: name })
+                sendAnswer({ type: 'word_cloud', questionId: currentQuestion.id, word })
               }
             />
           )}
@@ -169,7 +139,7 @@ export default function JoinPage() {
               prompt={currentQuestion.prompt}
               buckets={currentQuestion.buckets}
               onSubmit={(allocations) =>
-                sendAnswer({ type: 'token_allocation', questionId: currentQuestion.id, allocations, participantName: name })
+                sendAnswer({ type: 'token_allocation', questionId: currentQuestion.id, allocations })
               }
             />
           )}
@@ -179,7 +149,7 @@ export default function JoinPage() {
               key={currentQuestion.id}
               prompt={currentQuestion.prompt}
               onSubmit={(imageDataUrl) =>
-                sendAnswer({ type: 'pictionary', questionId: currentQuestion.id, imageDataUrl, participantName: name })
+                sendAnswer({ type: 'pictionary', questionId: currentQuestion.id, imageDataUrl })
               }
             />
           )}
@@ -193,7 +163,7 @@ export default function JoinPage() {
               yLow={currentQuestion.yLow}
               yHigh={currentQuestion.yHigh}
               onSubmit={(x, y) =>
-                sendAnswer({ type: 'coord_plot', questionId: currentQuestion.id, x, y, participantName: name })
+                sendAnswer({ type: 'coord_plot', questionId: currentQuestion.id, x, y })
               }
             />
           )}
@@ -204,7 +174,7 @@ export default function JoinPage() {
               prompt={currentQuestion.prompt}
               options={currentQuestion.options}
               onSubmit={(orderedOptions) =>
-                sendAnswer({ type: 'ranking', questionId: currentQuestion.id, orderedOptions, participantName: name })
+                sendAnswer({ type: 'ranking', questionId: currentQuestion.id, orderedOptions })
               }
             />
           )}
@@ -215,7 +185,7 @@ export default function JoinPage() {
               prompt={currentQuestion.prompt}
               items={currentQuestion.items}
               onSubmit={(reactions) =>
-                sendAnswer({ type: 'react', questionId: currentQuestion.id, reactions, participantName: name })
+                sendAnswer({ type: 'react', questionId: currentQuestion.id, reactions })
               }
             />
           )}
@@ -227,7 +197,7 @@ export default function JoinPage() {
               options={currentQuestion.options}
               multiSelect={currentQuestion.multiSelect}
               onSubmit={(options) =>
-                sendAnswer({ type: 'multiple_choice', questionId: currentQuestion.id, options, participantName: name })
+                sendAnswer({ type: 'multiple_choice', questionId: currentQuestion.id, options })
               }
             />
           )}
@@ -237,43 +207,13 @@ export default function JoinPage() {
   }
 
   // ── WAITING ───────────────────────────────────────────────────────────────
-  if (joined) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
-        <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-8 text-center flex flex-col items-center gap-4">
-          <div className="text-5xl">👋</div>
-          <p className="text-white font-black text-xl">You&apos;re in, {name}!</p>
-          <p className="text-ey-muted">Waiting for the host to start...</p>
-        </div>
-      </main>
-    )
-  }
-
-  // ── JOIN FORM ─────────────────────────────────────────────────────────────
   return (
     <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
-      <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-8 flex flex-col gap-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-black text-ey-yellow">Join Session</h1>
-          <p className="text-ey-muted font-mono tracking-widest mt-1">{code}</p>
-        </div>
-        <input
-          className="w-full bg-ey-field border border-ey-line-strong rounded-none px-4 py-3 text-white placeholder:text-ey-subtle focus:outline-none focus:ring-2 focus:ring-ey-yellow"
-          placeholder="Your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && joinSession()}
-          maxLength={50}
-          autoFocus
-        />
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-        <button
-          onClick={joinSession}
-          disabled={loading || !name.trim()}
-          className="w-full bg-ey-yellow text-ey-ink font-black text-lg rounded-none py-3 hover:bg-ey-yellow-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? 'Joining...' : 'Join →'}
-        </button>
+      <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-8 text-center flex flex-col items-center gap-4">
+        <div className="text-5xl">👋</div>
+        <p className="text-white font-black text-xl">You&apos;re in!</p>
+        <p className="text-ey-muted font-mono tracking-widest text-sm">{code}</p>
+        <p className="text-ey-muted">Waiting for the host to start...</p>
       </div>
     </main>
   )

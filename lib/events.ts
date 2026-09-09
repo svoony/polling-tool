@@ -33,21 +33,18 @@ export type WordCloudAnswerPayload = {
   type: 'word_cloud'
   questionId: string
   word: string
-  participantName: string
 }
 
 export type TokenAllocationAnswerPayload = {
   type: 'token_allocation'
   questionId: string
   allocations: Record<string, number>
-  participantName: string
 }
 
 export type PictionaryAnswerPayload = {
   type: 'pictionary'
   questionId: string
   imageDataUrl: string
-  participantName: string
 }
 
 export type CoordPlotAnswerPayload = {
@@ -55,21 +52,18 @@ export type CoordPlotAnswerPayload = {
   questionId: string
   x: number
   y: number
-  participantName: string
 }
 
 export type RankingAnswerPayload = {
   type: 'ranking'
   questionId: string
   orderedOptions: string[]
-  participantName: string
 }
 
 export type ReactAnswerPayload = {
   type: 'react'
   questionId: string
   reactions: Array<{ item: string; emoji: string }>
-  participantName: string
 }
 
 export type MultipleChoiceAnswerPayload = {
@@ -77,7 +71,6 @@ export type MultipleChoiceAnswerPayload = {
   questionId: string
   /** One entry for a single-answer question, one or more when the question is multi-select */
   options: string[]
-  participantName: string
 }
 
 export type AnswerPayload =

@@ -4,7 +4,7 @@ import type { Question } from './questions'
 export type ResultsSnapshot = {
   wordCloudWords: Record<number, string[]>
   tokenTotals: Record<number, Record<string, number>>
-  coordPoints: Record<number, Array<{ x: number; y: number; name: string }>>
+  coordPoints: Record<number, Array<{ x: number; y: number }>>
   rankingScores: Record<number, Record<string, number>>
   reactionCounts: Record<number, Record<string, Record<string, number>>>
   mcVotes: Record<number, Record<string, number>>
@@ -62,10 +62,12 @@ export function buildResultsCsv(questions: Question[], data: ResultsSnapshot): s
 
     if (q.type === 'coord_plot') {
       // One row per axis so the value column stays numeric and pivots cleanly.
-      for (const p of data.coordPoints[i] ?? []) {
-        add(p.name, '', 'x', p.x)
-        add(p.name, '', 'y', p.y)
-      }
+      // Answers are anonymous, so each point is labelled by its arrival order.
+      ;(data.coordPoints[i] ?? []).forEach((p, pIdx) => {
+        const label = `response ${pIdx + 1}`
+        add(label, '', 'x', p.x)
+        add(label, '', 'y', p.y)
+      })
       return
     }
 
