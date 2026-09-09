@@ -11,6 +11,7 @@ import {
   questionFromDraft,
   type QuestionDraft,
 } from '@/components/QuestionForm'
+import { Wordmark } from '@/components/Wordmark'
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -56,7 +57,7 @@ export default function Home() {
 
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-black text-ey-yellow">EYPoll</h1>
+          <h1 className="text-4xl flex justify-center"><Wordmark /></h1>
           <p className="text-ey-muted mt-1">Add your questions, then start the lobby.</p>
         </div>
 

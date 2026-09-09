@@ -11,6 +11,7 @@ import { ParticipantCoordPlot } from '@/components/participant/ParticipantCoordP
 import { ParticipantRanking } from '@/components/participant/ParticipantRanking'
 import { ParticipantReact } from '@/components/participant/ParticipantReact'
 import { ParticipantMultipleChoice } from '@/components/participant/ParticipantMultipleChoice'
+import { Wordmark } from '@/components/Wordmark'
 
 /** How long a tab must stay hidden before the participant drops off the host's count. */
 const AWAY_UNTRACK_MS = 60_000
@@ -210,6 +211,7 @@ export default function JoinPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
       <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-8 text-center flex flex-col items-center gap-4">
+        <Wordmark className="text-2xl" />
         <div className="text-5xl">👋</div>
         <p className="text-white font-black text-xl">You&apos;re in!</p>
         <p className="text-ey-muted font-mono tracking-widest text-sm">{code}</p>

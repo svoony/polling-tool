@@ -67,6 +67,9 @@
   --color-ey-faint: #6f6f7b;
   --color-ey-yellow: #ffe600;
   --color-ey-yellow-hover: #f2d900;
+  /* EY-Parthenon blue — the "Parthenon" wordmark colour; secondary/informational accent */
+  --color-ey-blue: #1a9afa;
+  --color-ey-blue-hover: #3aa9fb;
 }
 
 :root {

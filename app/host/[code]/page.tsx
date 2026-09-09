@@ -22,6 +22,7 @@ import { HostCoordPlot } from '@/components/host/HostCoordPlot'
 import { HostRanking } from '@/components/host/HostRanking'
 import { HostReact } from '@/components/host/HostReact'
 import { HostMultipleChoice } from '@/components/host/HostMultipleChoice'
+import { Wordmark } from '@/components/Wordmark'
 
 type Participant = { presence_ref: string }
 type Drawing = { url: string }
@@ -356,7 +357,7 @@ export default function HostPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `event-lobby-${code}-results.csv`
+    a.download = `eypoll-${code}-results.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -422,7 +423,7 @@ export default function HostPage() {
         <div className="max-w-4xl mx-auto flex flex-col gap-6">
 
           <div className="text-center">
-            <h1 className="text-3xl font-black text-ey-yellow">Event Lobby</h1>
+            <h1 className="text-3xl flex justify-center"><Wordmark /></h1>
             <p className="text-ey-subtle font-mono tracking-widest mt-1 text-sm">{code}</p>
           </div>
 
@@ -442,7 +443,7 @@ export default function HostPage() {
             <div className="bg-ey-panel border border-ey-line rounded-none p-6 flex flex-col gap-4">
               <p className="text-white font-bold text-lg">Participants</p>
               <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <span className="text-ey-yellow font-black text-6xl leading-none">{participants.length}</span>
+                <span className="text-ey-blue font-black text-6xl leading-none">{participants.length}</span>
                 <span className="text-ey-subtle text-sm mt-3">
                   {participants.length === 0 ? 'Waiting for participants...' : 'in the lobby'}
                 </span>
@@ -657,7 +658,7 @@ export default function HostPage() {
       {/* Sidebar */}
       <aside className="w-52 shrink-0 bg-ey-panel border-r border-ey-line p-4 flex flex-col gap-4 h-screen sticky top-0 overflow-y-auto">
         <div className="text-center">
-          <p className="text-ey-yellow font-black">Event Lobby</p>
+          <Wordmark className="text-lg" />
           <p className="text-ey-subtle font-mono text-xs tracking-widest">{code}</p>
         </div>
 
@@ -669,7 +670,7 @@ export default function HostPage() {
 
         <div className="flex justify-between bg-ey-field rounded-none px-3 py-2 text-sm">
           <span className="text-ey-muted">Participants</span>
-          <span className="text-ey-yellow font-bold">{participants.length}</span>
+          <span className="text-ey-blue font-bold">{participants.length}</span>
         </div>
 
         {/* Question progress list */}
@@ -710,14 +711,14 @@ export default function HostPage() {
               compareOpen ? (
                 <button
                   onClick={closeCompare}
-                  className="bg-ey-line text-white font-bold px-4 py-2 rounded-none hover:bg-ey-line-strong transition-colors text-sm"
+                  className="bg-ey-blue text-ey-ink font-bold px-4 py-2 rounded-none hover:bg-ey-blue-hover transition-colors text-sm"
                 >
                   Hide Compare
                 </button>
               ) : (
                 <button
                   onClick={openCompare}
-                  className="bg-ey-field text-ey-yellow font-bold px-4 py-2 rounded-none hover:bg-ey-line transition-colors text-sm border border-ey-line-strong"
+                  className="bg-ey-field text-ey-blue font-bold px-4 py-2 rounded-none hover:bg-ey-blue/10 transition-colors text-sm border border-ey-blue/40"
                 >
                   Compare ↔
                 </button>
@@ -747,7 +748,7 @@ export default function HostPage() {
           {/* Left half — current question results (always visible) */}
           <div
             className={`${compareOpen ? 'w-1/2' : 'flex-1'} min-w-0 overflow-y-auto p-8 ${
-              compareOpen ? 'border-r-2 border-ey-yellow/30' : ''
+              compareOpen ? 'border-r-2 border-ey-blue/40' : ''
             }`}
           >
             <div className="bg-ey-panel border border-ey-line rounded-none p-6">
@@ -769,7 +770,7 @@ export default function HostPage() {
                       onClick={() => selectComparison(i)}
                       className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-none transition-colors ${
                         comparisonIndex === i
-                          ? 'bg-ey-yellow text-ey-ink'
+                          ? 'bg-ey-blue text-ey-ink'
                           : 'bg-ey-field text-ey-muted hover:bg-ey-line'
                       }`}
                     >
