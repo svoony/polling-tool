@@ -418,41 +418,41 @@ export default function HostPage() {
   // ── LOBBY PHASE ──────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <main className="min-h-screen bg-zinc-950 p-6">
+      <main className="min-h-screen bg-ey-ink p-6">
         <div className="max-w-4xl mx-auto flex flex-col gap-6">
 
           <div className="text-center">
-            <h1 className="text-3xl font-black text-[#FFE600]">Event Lobby</h1>
-            <p className="text-zinc-500 font-mono tracking-widest mt-1 text-sm">{code}</p>
+            <h1 className="text-3xl font-black text-ey-yellow">Event Lobby</h1>
+            <p className="text-ey-subtle font-mono tracking-widest mt-1 text-sm">{code}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* QR */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col items-center gap-4">
+            <div className="bg-ey-panel border border-ey-line rounded-none p-6 flex flex-col items-center gap-4">
               <p className="text-white font-bold text-lg">Scan to Join</p>
               {joinUrl && (
-                <div className="bg-white p-3 rounded-xl">
+                <div className="bg-white p-3 rounded-none">
                   <QRCode value={joinUrl} size={200} />
                 </div>
               )}
-              <p className="text-zinc-500 text-xs break-all text-center">{joinUrl}</p>
+              <p className="text-ey-subtle text-xs break-all text-center">{joinUrl}</p>
             </div>
 
             {/* Participants */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-4">
+            <div className="bg-ey-panel border border-ey-line rounded-none p-6 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <p className="text-white font-bold text-lg">Participants</p>
-                <span className="bg-zinc-800 text-[#FFE600] font-bold text-sm px-3 py-1 rounded-full">
+                <span className="bg-ey-field text-ey-yellow font-bold text-sm px-3 py-1 rounded-full">
                   {participants.length}
                 </span>
               </div>
               {participants.length === 0 ? (
-                <p className="text-zinc-500 text-center py-6">Waiting for participants...</p>
+                <p className="text-ey-subtle text-center py-6">Waiting for participants...</p>
               ) : (
                 <ul className="space-y-2 overflow-y-auto max-h-48">
                   {participants.map((p) => (
-                    <li key={p.presence_ref} className="flex items-center gap-2 bg-zinc-800 rounded-lg px-3 py-2">
-                      <span className="w-2 h-2 bg-[#FFE600] rounded-full shrink-0" />
+                    <li key={p.presence_ref} className="flex items-center gap-2 bg-ey-field rounded-none px-3 py-2">
+                      <span className="w-2 h-2 bg-ey-yellow rounded-full shrink-0" />
                       <span className="text-white text-sm">{p.name}</span>
                     </li>
                   ))}
@@ -462,29 +462,29 @@ export default function HostPage() {
           </div>
 
           {/* Question preview — each question is editable until the session starts */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-3">
-            <p className="text-zinc-500 text-xs uppercase tracking-widest">
+          <div className="bg-ey-panel border border-ey-line rounded-none p-6 flex flex-col gap-3">
+            <p className="text-ey-subtle text-xs uppercase tracking-widest">
               {questions.length} question{questions.length !== 1 ? 's' : ''} queued
             </p>
             {questions.length === 0 && (
-              <p className="text-zinc-500 text-sm">No questions left — add one below to start the session.</p>
+              <p className="text-ey-subtle text-sm">No questions left — add one below to start the session.</p>
             )}
             {questions.map((q, i) =>
               editTarget?.kind === 'edit' && editTarget.id === q.id && editDraft ? (
-                <div key={q.id} className="bg-zinc-950 border border-zinc-700 rounded-xl p-4 flex flex-col gap-4">
-                  <p className="text-zinc-500 text-xs uppercase tracking-widest">Editing question {i + 1}</p>
+                <div key={q.id} className="bg-ey-ink border border-ey-line-strong rounded-none p-4 flex flex-col gap-4">
+                  <p className="text-ey-subtle text-xs uppercase tracking-widest">Editing question {i + 1}</p>
                   <QuestionForm draft={editDraft} onChange={setEditDraft} onSubmit={saveDraft} />
                   <div className="flex gap-2">
                     <button
                       onClick={saveDraft}
                       disabled={!isDraftValid(editDraft)}
-                      className="flex-1 bg-[#FFE600] text-zinc-900 font-black rounded-xl py-2 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="flex-1 bg-ey-yellow text-ey-ink font-black rounded-none py-2 hover:bg-ey-yellow-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       Save
                     </button>
                     <button
                       onClick={cancelEditing}
-                      className="flex-1 bg-zinc-800 text-white font-bold rounded-xl py-2 hover:bg-zinc-700 transition-colors border border-zinc-700"
+                      className="flex-1 bg-ey-field text-white font-bold rounded-none py-2 hover:bg-ey-line transition-colors border border-ey-line-strong"
                     >
                       Cancel
                     </button>
@@ -492,12 +492,12 @@ export default function HostPage() {
                 </div>
               ) : (
                 <div key={q.id} className="flex items-start gap-3 text-sm">
-                  <span className="text-[#FFE600] font-bold w-5 shrink-0">{i + 1}</span>
-                  <span className="text-zinc-500 shrink-0">{TYPE_LABELS[q.type]}</span>
+                  <span className="text-ey-yellow font-bold w-5 shrink-0">{i + 1}</span>
+                  <span className="text-ey-subtle shrink-0">{TYPE_LABELS[q.type]}</span>
                   <span className="text-white min-w-0 flex-1">
                     — {q.prompt}
                     {questionDetail(q) && (
-                      <span className="block text-zinc-500 text-xs mt-0.5">{questionDetail(q)}</span>
+                      <span className="block text-ey-subtle text-xs mt-0.5">{questionDetail(q)}</span>
                     )}
                   </span>
                   <div className="flex items-center gap-1 shrink-0">
@@ -505,7 +505,7 @@ export default function HostPage() {
                       onClick={() => moveQuestion(i, -1)}
                       disabled={editTarget !== null || i === 0}
                       title="Move up"
-                      className="text-zinc-500 hover:text-[#FFE600] px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                      className="text-ey-subtle hover:text-ey-yellow px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-ey-subtle"
                     >
                       ↑
                     </button>
@@ -513,14 +513,14 @@ export default function HostPage() {
                       onClick={() => moveQuestion(i, 1)}
                       disabled={editTarget !== null || i === questions.length - 1}
                       title="Move down"
-                      className="text-zinc-500 hover:text-[#FFE600] px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                      className="text-ey-subtle hover:text-ey-yellow px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-ey-subtle"
                     >
                       ↓
                     </button>
                     <button
                       onClick={() => startEditing(q)}
                       disabled={editTarget !== null}
-                      className="text-zinc-500 hover:text-[#FFE600] text-xs px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                      className="text-ey-subtle hover:text-ey-yellow text-xs px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-ey-subtle"
                     >
                       Edit
                     </button>
@@ -528,7 +528,7 @@ export default function HostPage() {
                       onClick={() => deleteQuestion(q.id)}
                       disabled={editTarget !== null}
                       title="Delete question"
-                      className="text-zinc-500 hover:text-red-400 text-xs px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-zinc-500"
+                      className="text-ey-subtle hover:text-red-400 text-xs px-1 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-ey-subtle"
                     >
                       ✕
                     </button>
@@ -539,20 +539,20 @@ export default function HostPage() {
 
             {/* Add a question */}
             {editTarget?.kind === 'add' && editDraft ? (
-              <div className="bg-zinc-950 border border-zinc-700 rounded-xl p-4 flex flex-col gap-4">
-                <p className="text-zinc-500 text-xs uppercase tracking-widest">New question</p>
+              <div className="bg-ey-ink border border-ey-line-strong rounded-none p-4 flex flex-col gap-4">
+                <p className="text-ey-subtle text-xs uppercase tracking-widest">New question</p>
                 <QuestionForm draft={editDraft} onChange={setEditDraft} onSubmit={saveDraft} />
                 <div className="flex gap-2">
                   <button
                     onClick={saveDraft}
                     disabled={!isDraftValid(editDraft)}
-                    className="flex-1 bg-[#FFE600] text-zinc-900 font-black rounded-xl py-2 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 bg-ey-yellow text-ey-ink font-black rounded-none py-2 hover:bg-ey-yellow-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     Add Question
                   </button>
                   <button
                     onClick={cancelEditing}
-                    className="flex-1 bg-zinc-800 text-white font-bold rounded-xl py-2 hover:bg-zinc-700 transition-colors border border-zinc-700"
+                    className="flex-1 bg-ey-field text-white font-bold rounded-none py-2 hover:bg-ey-line transition-colors border border-ey-line-strong"
                   >
                     Cancel
                   </button>
@@ -562,7 +562,7 @@ export default function HostPage() {
               <button
                 onClick={startAdding}
                 disabled={editTarget !== null}
-                className="text-[#FFE600] text-sm text-left hover:underline disabled:opacity-30 disabled:cursor-not-allowed disabled:no-underline"
+                className="text-ey-yellow text-sm text-left hover:underline disabled:opacity-30 disabled:cursor-not-allowed disabled:no-underline"
               >
                 + Add question
               </button>
@@ -574,7 +574,7 @@ export default function HostPage() {
           <button
             onClick={startSession}
             disabled={participants.length === 0 || questions.length === 0 || editTarget !== null}
-            className="w-full bg-[#FFE600] text-zinc-900 font-black text-xl rounded-2xl py-4 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-ey-yellow text-ey-ink font-black text-xl rounded-none py-4 hover:bg-ey-yellow-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             {editTarget !== null
               ? 'Finish editing to start'
@@ -593,14 +593,14 @@ export default function HostPage() {
   // ── ENDED PHASE ──────────────────────────────────────────────────────────────
   if (phase === 'ended') {
     return (
-      <main className="min-h-screen bg-zinc-950 p-8">
+      <main className="min-h-screen bg-ey-ink p-8">
         <div className="max-w-4xl mx-auto flex flex-col gap-8">
 
           {/* Screen header — hidden when printing */}
           <div className="flex items-center justify-between print:hidden">
             <div>
-              <h1 className="text-3xl font-black text-[#FFE600]">Session Complete 🎉</h1>
-              <p className="text-zinc-400 mt-1">
+              <h1 className="text-3xl font-black text-ey-yellow">Session Complete 🎉</h1>
+              <p className="text-ey-muted mt-1">
                 {participants.length} participant{participants.length !== 1 ? 's' : ''} ·{' '}
                 {questions.length} question{questions.length !== 1 ? 's' : ''}
               </p>
@@ -613,25 +613,25 @@ export default function HostPage() {
                   currentPayloadRef.current = payload
                   setPhase('active')
                 }}
-                className="bg-zinc-800 text-white font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
+                className="bg-ey-field text-white font-bold px-5 py-3 rounded-none hover:bg-ey-line transition-colors border border-ey-line-strong"
               >
                 ← Back to Questions
               </button>
               <button
                 onClick={resetSession}
-                className="bg-zinc-800 text-red-400 font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
+                className="bg-ey-field text-red-400 font-bold px-5 py-3 rounded-none hover:bg-ey-line transition-colors border border-ey-line-strong"
               >
                 Reset Session
               </button>
               <button
                 onClick={exportCsv}
-                className="bg-zinc-800 text-white font-bold px-5 py-3 rounded-xl hover:bg-zinc-700 transition-colors border border-zinc-700"
+                className="bg-ey-field text-white font-bold px-5 py-3 rounded-none hover:bg-ey-line transition-colors border border-ey-line-strong"
               >
                 Export CSV ↓
               </button>
               <button
                 onClick={() => window.print()}
-                className="bg-[#FFE600] text-zinc-900 font-black px-6 py-3 rounded-xl hover:bg-[#FFD900] transition-colors text-lg"
+                className="bg-ey-yellow text-ey-ink font-black px-6 py-3 rounded-none hover:bg-ey-yellow-hover transition-colors text-lg"
               >
                 Save as PDF ↓
               </button>
@@ -640,16 +640,16 @@ export default function HostPage() {
 
           {/* Print-only header */}
           <div className="hidden print:block">
-            <h1 className="text-3xl font-black text-[#FFE600]">Session Summary</h1>
-            <p className="text-zinc-400 mt-1">
+            <h1 className="text-3xl font-black text-ey-yellow">Session Summary</h1>
+            <p className="text-ey-muted mt-1">
               Code: {code} · {participants.length} participants · {questions.length} questions
             </p>
           </div>
 
           {/* One card per question */}
           {questions.map((q, i) => (
-            <div key={q.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 break-inside-avoid">
-              <p className="text-zinc-500 text-xs uppercase tracking-widest mb-4">
+            <div key={q.id} className="bg-ey-panel border border-ey-line rounded-none p-6 break-inside-avoid">
+              <p className="text-ey-subtle text-xs uppercase tracking-widest mb-4">
                 Q{i + 1} · {TYPE_LABELS[q.type]}
               </p>
               {renderResults(i)}
@@ -663,24 +663,24 @@ export default function HostPage() {
 
   // ── ACTIVE PHASE ─────────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-zinc-950 flex overflow-hidden">
+    <main className="min-h-screen bg-ey-ink flex overflow-hidden">
 
       {/* Sidebar */}
-      <aside className="w-52 shrink-0 bg-zinc-900 border-r border-zinc-800 p-4 flex flex-col gap-4 h-screen sticky top-0 overflow-y-auto">
+      <aside className="w-52 shrink-0 bg-ey-panel border-r border-ey-line p-4 flex flex-col gap-4 h-screen sticky top-0 overflow-y-auto">
         <div className="text-center">
-          <p className="text-[#FFE600] font-black">Event Lobby</p>
-          <p className="text-zinc-500 font-mono text-xs tracking-widest">{code}</p>
+          <p className="text-ey-yellow font-black">Event Lobby</p>
+          <p className="text-ey-subtle font-mono text-xs tracking-widest">{code}</p>
         </div>
 
         {joinUrl && (
-          <div className="bg-white p-2 rounded-xl">
+          <div className="bg-white p-2 rounded-none">
             <QRCode value={joinUrl} size={152} />
           </div>
         )}
 
-        <div className="flex justify-between bg-zinc-800 rounded-xl px-3 py-2 text-sm">
-          <span className="text-zinc-400">Participants</span>
-          <span className="text-[#FFE600] font-bold">{participants.length}</span>
+        <div className="flex justify-between bg-ey-field rounded-none px-3 py-2 text-sm">
+          <span className="text-ey-muted">Participants</span>
+          <span className="text-ey-yellow font-bold">{participants.length}</span>
         </div>
 
         {/* Question progress list */}
@@ -688,12 +688,12 @@ export default function HostPage() {
           {questions.map((q, i) => (
             <div
               key={q.id}
-              className={`text-xs px-2 py-1.5 rounded-lg leading-snug ${
+              className={`text-xs px-2 py-1.5 rounded-none leading-snug ${
                 i === currentIndex
-                  ? 'bg-[#FFE600] text-zinc-900 font-bold'
+                  ? 'bg-ey-yellow text-ey-ink font-bold'
                   : i < currentIndex
-                  ? 'text-zinc-600'
-                  : 'text-zinc-500'
+                  ? 'text-ey-faint'
+                  : 'text-ey-subtle'
               }`}
             >
               {i + 1}. {q.prompt.length > 28 ? q.prompt.slice(0, 28) + '…' : q.prompt}
@@ -706,12 +706,12 @@ export default function HostPage() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
 
         {/* Top bar */}
-        <div className="shrink-0 flex items-center justify-between px-8 py-4 border-b border-zinc-800">
+        <div className="shrink-0 flex items-center justify-between px-8 py-4 border-b border-ey-line">
           <div>
-            <span className="text-[#FFE600] text-xs font-bold uppercase tracking-wider">
+            <span className="text-ey-yellow text-xs font-bold uppercase tracking-wider">
               {currentQuestion ? TYPE_LABELS[currentQuestion.type] : ''}
             </span>
-            <p className="text-zinc-400 text-sm mt-0.5">
+            <p className="text-ey-muted text-sm mt-0.5">
               Question {currentIndex + 1} of {questions.length}
             </p>
           </div>
@@ -721,14 +721,14 @@ export default function HostPage() {
               compareOpen ? (
                 <button
                   onClick={closeCompare}
-                  className="bg-zinc-700 text-white font-bold px-4 py-2 rounded-xl hover:bg-zinc-600 transition-colors text-sm"
+                  className="bg-ey-line text-white font-bold px-4 py-2 rounded-none hover:bg-ey-line-strong transition-colors text-sm"
                 >
                   Hide Compare
                 </button>
               ) : (
                 <button
                   onClick={openCompare}
-                  className="bg-zinc-800 text-[#FFE600] font-bold px-4 py-2 rounded-xl hover:bg-zinc-700 transition-colors text-sm border border-zinc-700"
+                  className="bg-ey-field text-ey-yellow font-bold px-4 py-2 rounded-none hover:bg-ey-line transition-colors text-sm border border-ey-line-strong"
                 >
                   Compare ↔
                 </button>
@@ -738,14 +738,14 @@ export default function HostPage() {
             {currentIndex > 0 && (
               <button
                 onClick={previous}
-                className="bg-zinc-700 text-white font-bold px-4 py-2 rounded-xl hover:bg-zinc-600 transition-colors text-sm"
+                className="bg-ey-line text-white font-bold px-4 py-2 rounded-none hover:bg-ey-line-strong transition-colors text-sm"
               >
                 ← Prev
               </button>
             )}
             <button
               onClick={advance}
-              className="bg-[#FFE600] text-zinc-900 font-black px-6 py-2 rounded-xl hover:bg-[#FFD900] transition-colors"
+              className="bg-ey-yellow text-ey-ink font-black px-6 py-2 rounded-none hover:bg-ey-yellow-hover transition-colors"
             >
               {isLastQuestion ? 'End Session →' : 'Next →'}
             </button>
@@ -758,10 +758,10 @@ export default function HostPage() {
           {/* Left half — current question results (always visible) */}
           <div
             className={`${compareOpen ? 'w-1/2' : 'flex-1'} min-w-0 overflow-y-auto p-8 ${
-              compareOpen ? 'border-r-2 border-[#FFE600]/30' : ''
+              compareOpen ? 'border-r-2 border-ey-yellow/30' : ''
             }`}
           >
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <div className="bg-ey-panel border border-ey-line rounded-none p-6">
               {renderResults(currentIndex)}
             </div>
           </div>
@@ -770,18 +770,18 @@ export default function HostPage() {
           {compareOpen && (
             <div className="w-1/2 min-w-0 flex flex-col">
               {/* Comparison question selector */}
-              <div className="shrink-0 flex items-center gap-2 px-6 py-3 bg-zinc-900/50 border-b border-zinc-800 overflow-x-auto">
-                <span className="text-zinc-500 text-xs uppercase tracking-widest shrink-0 mr-2">Compare with:</span>
+              <div className="shrink-0 flex items-center gap-2 px-6 py-3 bg-ey-panel/50 border-b border-ey-line overflow-x-auto">
+                <span className="text-ey-subtle text-xs uppercase tracking-widest shrink-0 mr-2">Compare with:</span>
                 {questions.map((q, i) => {
                   if (i === currentIndex) return null
                   return (
                     <button
                       key={q.id}
                       onClick={() => selectComparison(i)}
-                      className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                      className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-none transition-colors ${
                         comparisonIndex === i
-                          ? 'bg-[#FFE600] text-zinc-900'
-                          : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                          ? 'bg-ey-yellow text-ey-ink'
+                          : 'bg-ey-field text-ey-muted hover:bg-ey-line'
                       }`}
                     >
                       Q{i + 1}: {q.prompt.length > 24 ? q.prompt.slice(0, 24) + '…' : q.prompt}
@@ -793,15 +793,15 @@ export default function HostPage() {
               {/* Comparison results */}
               <div className="flex-1 min-h-0 overflow-y-auto p-8">
                 {comparisonIndex !== null ? (
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-                    <p className="text-zinc-500 text-xs uppercase tracking-widest mb-4">
+                  <div className="bg-ey-panel border border-ey-line rounded-none p-6">
+                    <p className="text-ey-subtle text-xs uppercase tracking-widest mb-4">
                       Q{comparisonIndex + 1} · {questions[comparisonIndex] ? TYPE_LABELS[questions[comparisonIndex].type] : ''}
                     </p>
                     {renderResults(comparisonIndex)}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-zinc-600 text-sm">Select a question to compare</p>
+                    <p className="text-ey-faint text-sm">Select a question to compare</p>
                   </div>
                 )}
               </div>

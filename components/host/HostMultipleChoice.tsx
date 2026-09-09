@@ -18,7 +18,7 @@ export function HostMultipleChoice({ prompt, options, votes, multiSelect = false
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between">
         <h2 className="text-white font-black text-2xl">{prompt}</h2>
-        <span className="text-zinc-500 text-sm shrink-0 ml-4">
+        <span className="text-ey-subtle text-sm shrink-0 ml-4">
           {multiSelect
             ? `${totalVotes} selection${totalVotes !== 1 ? 's' : ''}`
             : `${totalVotes} response${totalVotes !== 1 ? 's' : ''}`}
@@ -33,14 +33,14 @@ export function HostMultipleChoice({ prompt, options, votes, multiSelect = false
           return (
             <div key={option} className="flex flex-col gap-1">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-zinc-200 text-sm font-bold">{option}</span>
-                <span className="text-zinc-400 text-sm shrink-0">
+                <span className="text-white text-sm font-bold">{option}</span>
+                <span className="text-ey-muted text-sm shrink-0">
                   {count} {showPct && `(${Math.round(pct)}%)`}
                 </span>
               </div>
-              <div className="w-full bg-zinc-800 rounded-full h-5 overflow-hidden">
+              <div className="w-full bg-ey-field rounded-full h-5 overflow-hidden">
                 <div
-                  className="h-full bg-[#FFE600] rounded-full transition-all duration-500"
+                  className="h-full bg-ey-yellow rounded-full transition-all duration-500"
                   style={{ width: `${barPct}%` }}
                 />
               </div>

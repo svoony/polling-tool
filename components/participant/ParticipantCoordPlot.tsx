@@ -50,35 +50,35 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
       <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
 
       {submitted ? (
-        <p className="text-[#FFE600] font-black text-center text-lg">Response submitted ✓</p>
+        <p className="text-ey-yellow font-black text-center text-lg">Response submitted ✓</p>
       ) : (
-        <p className="text-zinc-400 text-sm text-center">Tap the graph to place yourself.</p>
+        <p className="text-ey-muted text-sm text-center">Tap the graph to place yourself.</p>
       )}
 
       {/* Row: Y labels (left, outside) + Plot */}
       <div className="flex gap-2 items-stretch">
         {/* Y labels column — spans the full height of the plot */}
         <div className="flex flex-col justify-between shrink-0 w-14 text-right">
-          <span className="text-zinc-400 text-xs leading-tight break-words">{yHigh}</span>
-          <span className="text-zinc-400 text-xs leading-tight break-words">{yLow}</span>
+          <span className="text-ey-muted text-xs leading-tight break-words">{yHigh}</span>
+          <span className="text-ey-muted text-xs leading-tight break-words">{yLow}</span>
         </div>
 
         {/* Plot */}
         <div
           ref={plotRef}
-          className="flex-1 aspect-square relative border border-zinc-600 rounded-xl bg-zinc-800"
+          className="flex-1 aspect-square relative border border-ey-line-strong rounded-none bg-ey-field"
           style={{ touchAction: 'none', cursor: submitted ? 'default' : 'crosshair' }}
           onClick={handleClick}
           onTouchStart={handleTouch}
         >
           {/* Centre grid lines */}
-          <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700 pointer-events-none" />
-          <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 left-1/2 border-l border-ey-line-strong pointer-events-none" />
+          <div className="absolute left-0 right-0 top-1/2 border-t border-ey-line-strong pointer-events-none" />
 
           {/* Dot */}
           {point && (
             <div
-              className="absolute w-5 h-5 bg-[#FFE600] rounded-full border-2 border-zinc-900 shadow-lg pointer-events-none"
+              className="absolute w-5 h-5 bg-ey-yellow rounded-full border-2 border-ey-panel shadow-lg pointer-events-none"
               style={{
                 left: `${point.x * 100}%`,
                 top: `${(1 - point.y) * 100}%`,
@@ -93,8 +93,8 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
       <div className="flex gap-2">
         <div className="w-14 shrink-0" />{/* spacer matching Y column */}
         <div className="flex-1 flex justify-between">
-          <span className="text-zinc-400 text-xs leading-tight">{xLow}</span>
-          <span className="text-zinc-400 text-xs leading-tight text-right">{xHigh}</span>
+          <span className="text-ey-muted text-xs leading-tight">{xLow}</span>
+          <span className="text-ey-muted text-xs leading-tight text-right">{xHigh}</span>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export function ParticipantCoordPlot({ prompt, xLow, xHigh, yLow, yHigh, onSubmi
         <button
           onClick={handleSubmit}
           disabled={!point || loading}
-          className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-ey-yellow text-ey-ink font-black text-lg rounded-none py-3 hover:bg-ey-yellow-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Submitting...' : 'Submit'}
         </button>

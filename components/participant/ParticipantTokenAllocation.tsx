@@ -34,11 +34,11 @@ export function ParticipantTokenAllocation({ prompt, buckets, onSubmit }: Props)
     return (
       <div className="flex flex-col gap-4">
         <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
-        <p className="text-[#FFE600] font-black text-center text-xl">Tokens allocated!</p>
+        <p className="text-ey-yellow font-black text-center text-xl">Tokens allocated!</p>
         <div className="flex flex-col gap-2 mt-2">
           {buckets.map((b) => (
             <div key={b} className="flex justify-between text-sm">
-              <span className="text-zinc-300">{b}</span>
+              <span className="text-ey-muted">{b}</span>
               <span className="text-white font-bold">{values[b] || 0} tokens</span>
             </div>
           ))}
@@ -50,7 +50,7 @@ export function ParticipantTokenAllocation({ prompt, buckets, onSubmit }: Props)
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
-      <p className="text-zinc-400 text-sm text-center">Distribute exactly 100 tokens across the buckets below.</p>
+      <p className="text-ey-muted text-sm text-center">Distribute exactly 100 tokens across the buckets below.</p>
 
       <div className="flex flex-col gap-3">
         {buckets.map((bucket) => (
@@ -60,7 +60,7 @@ export function ParticipantTokenAllocation({ prompt, buckets, onSubmit }: Props)
               type="number"
               min="0"
               max="100"
-              className="w-20 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white text-center focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
+              className="w-20 bg-ey-field border border-ey-line-strong rounded-none px-3 py-2 text-white text-center focus:outline-none focus:ring-2 focus:ring-ey-yellow"
               value={values[bucket]}
               onChange={(e) => setValues((prev) => ({ ...prev, [bucket]: e.target.value }))}
             />
@@ -69,9 +69,9 @@ export function ParticipantTokenAllocation({ prompt, buckets, onSubmit }: Props)
       </div>
 
       <p className={`text-center font-bold text-sm ${
-        remaining === 0 ? 'text-[#FFE600]' :
+        remaining === 0 ? 'text-ey-yellow' :
         remaining < 0 ? 'text-red-400' :
-        'text-zinc-400'
+        'text-ey-muted'
       }`}>
         {remaining > 0
           ? `${remaining} tokens remaining`
@@ -83,7 +83,7 @@ export function ParticipantTokenAllocation({ prompt, buckets, onSubmit }: Props)
       <button
         onClick={handleSubmit}
         disabled={!isValid || loading}
-        className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-ey-yellow text-ey-ink font-black text-lg rounded-none py-3 hover:bg-ey-yellow-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         Submit
       </button>

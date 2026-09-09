@@ -24,7 +24,7 @@ export function WordCloudDisplay({ words }: Props) {
   const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1])
 
   if (sorted.length === 0) {
-    return <p className="text-zinc-500 text-center py-8">Waiting for answers...</p>
+    return <p className="text-ey-subtle text-center py-8">Waiting for answers...</p>
   }
 
   return (
@@ -39,7 +39,7 @@ export function WordCloudDisplay({ words }: Props) {
           <span
             key={word}
             style={{ fontSize: `${fontSize}rem`, margin: `${mt}px ${mx}px ${mb}px`, display: 'inline-block' }}
-            className="bg-[#FFE600] text-zinc-900 font-black px-3 py-1 rounded-full whitespace-nowrap"
+            className="bg-ey-yellow text-ey-ink font-black px-3 py-1 rounded-full whitespace-nowrap"
           >
             {word}
           </span>

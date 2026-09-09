@@ -92,13 +92,13 @@ export function ParticipantPictionary({ prompt, onSubmit }: Props) {
   return (
     <div className="flex flex-col gap-4 items-center">
       <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
-      <p className="text-zinc-500 text-sm text-center">Draw below, then submit. You can submit multiple drawings.</p>
+      <p className="text-ey-subtle text-sm text-center">Draw below, then submit. You can submit multiple drawings.</p>
 
       <canvas
         ref={canvasRef}
         width={300}
         height={300}
-        className="rounded-xl border-2 border-zinc-700 cursor-crosshair"
+        className="rounded-none border-2 border-ey-line-strong cursor-crosshair"
         style={{ touchAction: 'none', width: '100%', maxWidth: '300px', aspectRatio: '1' }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
@@ -112,21 +112,21 @@ export function ParticipantPictionary({ prompt, onSubmit }: Props) {
       <div className="flex gap-3 w-full max-w-[300px]">
         <button
           onClick={initCanvas}
-          className="flex-1 bg-zinc-700 text-white font-bold py-2 rounded-xl hover:bg-zinc-600 transition-colors"
+          className="flex-1 bg-ey-line text-white font-bold py-2 rounded-none hover:bg-ey-line-strong transition-colors"
         >
           Clear
         </button>
         <button
           onClick={submitDrawing}
           disabled={loading}
-          className="flex-1 bg-[#FFE600] text-zinc-900 font-black py-2 rounded-xl hover:bg-[#FFD900] disabled:opacity-40 transition-colors"
+          className="flex-1 bg-ey-yellow text-ey-ink font-black py-2 rounded-none hover:bg-ey-yellow-hover disabled:opacity-40 transition-colors"
         >
           {loading ? 'Sending...' : 'Submit'}
         </button>
       </div>
 
       {submittedCount > 0 && (
-        <p className="text-zinc-400 text-sm">
+        <p className="text-ey-muted text-sm">
           {submittedCount} drawing{submittedCount !== 1 ? 's' : ''} submitted ✓
         </p>
       )}

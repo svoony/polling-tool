@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
-
-* {
-  font-family: Arial, Helvetica, sans-serif;
-}
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+/* EY-Parthenon aesthetic: Interstate-style grotesque type */
+* {
+  font-family: "EYInterstate", "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -52,6 +54,21 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* EY-Parthenon palette: "Confident Gray" neutrals + EY Yellow accent.
+   Ink = darkest page bg (#1A1A24), Panel = confident gray surface (#2E2E38). */
+@theme {
+  --color-ey-ink: #1a1a24;
+  --color-ey-panel: #2e2e38;
+  --color-ey-field: #23232d;
+  --color-ey-line: #3a3a46;
+  --color-ey-line-strong: #4d4d59;
+  --color-ey-muted: #c4c4cd;
+  --color-ey-subtle: #9a9aa6;
+  --color-ey-faint: #6f6f7b;
+  --color-ey-yellow: #ffe600;
+  --color-ey-yellow-hover: #f2d900;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -76,7 +93,7 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);

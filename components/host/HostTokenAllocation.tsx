@@ -19,11 +19,11 @@ export function HostTokenAllocation({ prompt, buckets, totals, participantCount 
             <div key={bucket} className="flex flex-col gap-1">
               <div className="flex justify-between">
                 <span className="text-white font-bold">{bucket}</span>
-                <span className="text-[#FFE600] font-black">{total} tokens</span>
+                <span className="text-ey-yellow font-black">{total} tokens</span>
               </div>
-              <div className="bg-zinc-800 rounded-full h-5 overflow-hidden">
+              <div className="bg-ey-field rounded-full h-5 overflow-hidden">
                 <div
-                  className="bg-[#FFE600] h-5 rounded-full transition-all duration-300"
+                  className="bg-ey-yellow h-5 rounded-full transition-all duration-300"
                   style={{ width: `${pct}%` }}
                 />
               </div>

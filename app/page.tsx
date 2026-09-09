@@ -51,33 +51,33 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-4">
+    <main className="min-h-screen bg-ey-ink p-4">
       <div className="max-w-2xl mx-auto py-8 flex flex-col gap-8">
 
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-black text-[#FFE600]">EYPoll</h1>
-          <p className="text-zinc-400 mt-1">Add your questions, then start the lobby.</p>
+          <h1 className="text-4xl font-black text-ey-yellow">EYPoll</h1>
+          <p className="text-ey-muted mt-1">Add your questions, then start the lobby.</p>
         </div>
 
         {/* Added questions */}
         {questions.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-zinc-500 text-xs uppercase tracking-widest">Questions added</p>
+            <p className="text-ey-subtle text-xs uppercase tracking-widest">Questions added</p>
             {questions.map((q, i) => (
-              <div key={q.id} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-start justify-between gap-4">
+              <div key={q.id} className="bg-ey-panel border border-ey-line rounded-none px-4 py-3 flex items-start justify-between gap-4">
                 <div>
-                  <span className="text-[#FFE600] text-xs font-bold uppercase tracking-wider">
+                  <span className="text-ey-yellow text-xs font-bold uppercase tracking-wider">
                     {i + 1}. {TYPE_LABELS[q.type]}
                   </span>
                   <p className="text-white text-sm mt-0.5">{q.prompt}</p>
                   {questionDetail(q) && (
-                    <p className="text-zinc-500 text-xs mt-0.5">{questionDetail(q)}</p>
+                    <p className="text-ey-subtle text-xs mt-0.5">{questionDetail(q)}</p>
                   )}
                 </div>
                 <button
                   onClick={() => removeQuestion(q.id)}
-                  className="text-zinc-600 hover:text-red-400 text-xs transition-colors shrink-0 mt-0.5"
+                  className="text-ey-faint hover:text-red-400 text-xs transition-colors shrink-0 mt-0.5"
                 >
                   Remove
                 </button>
@@ -87,7 +87,7 @@ export default function Home() {
         )}
 
         {/* Question builder */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-5">
+        <div className="bg-ey-panel border border-ey-line rounded-none p-6 flex flex-col gap-5">
           <p className="text-white font-bold text-lg">
             {questions.length === 0 ? 'Add your first question' : 'Add another question'}
           </p>
@@ -97,7 +97,7 @@ export default function Home() {
           <button
             onClick={addQuestion}
             disabled={!isDraftValid(draft)}
-            className="w-full bg-zinc-700 text-white font-bold rounded-xl py-3 hover:bg-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-ey-line text-white font-bold rounded-none py-3 hover:bg-ey-line-strong disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             Add Question
           </button>
@@ -108,7 +108,7 @@ export default function Home() {
         <button
           onClick={startLobby}
           disabled={questions.length === 0 || creating}
-          className="w-full bg-[#FFE600] text-zinc-900 font-black text-xl rounded-2xl py-4 hover:bg-[#FFD900] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-ey-yellow text-ey-ink font-black text-xl rounded-none py-4 hover:bg-ey-yellow-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           {creating ? 'Creating...' : 'Start Lobby →'}
         </button>

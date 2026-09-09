@@ -10,10 +10,10 @@ export function HostPictionary({ prompt, drawings }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-white font-bold text-xl">{prompt}</h2>
-        <span className="text-zinc-400 text-sm">{drawings.length} drawing{drawings.length !== 1 ? 's' : ''}</span>
+        <span className="text-ey-muted text-sm">{drawings.length} drawing{drawings.length !== 1 ? 's' : ''}</span>
       </div>
       {drawings.length === 0 ? (
-        <p className="text-zinc-500 text-center py-8">Waiting for drawings...</p>
+        <p className="text-ey-subtle text-center py-8">Waiting for drawings...</p>
       ) : (
         <div className="flex flex-wrap gap-4">
           {drawings.map((d, i) => (
@@ -22,9 +22,9 @@ export function HostPictionary({ prompt, drawings }: Props) {
               <img
                 src={d.url}
                 alt={`Drawing by ${d.name}`}
-                className="w-36 h-36 rounded-2xl border-2 border-[#FFE600] object-cover"
+                className="w-36 h-36 rounded-none border-2 border-ey-yellow object-cover"
               />
-              <span className="text-zinc-400 text-xs">{d.name}</span>
+              <span className="text-ey-muted text-xs">{d.name}</span>
             </div>
           ))}
         </div>

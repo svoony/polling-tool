@@ -41,7 +41,7 @@ export function ParticipantReact({ prompt, items, onSubmit }: Props) {
     return (
       <div className="flex flex-col gap-4 items-center">
         <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
-        <p className="text-[#FFE600] font-black text-center text-lg">Reactions submitted ✓</p>
+        <p className="text-ey-yellow font-black text-center text-lg">Reactions submitted ✓</p>
       </div>
     )
   }
@@ -49,21 +49,21 @@ export function ParticipantReact({ prompt, items, onSubmit }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
-      <p className="text-zinc-400 text-sm text-center">Tap any emoji to react to each item.</p>
+      <p className="text-ey-muted text-sm text-center">Tap any emoji to react to each item.</p>
 
       <div className="flex flex-col gap-3">
         {items.map((item) => (
-          <div key={item} className="bg-zinc-800 rounded-xl p-3 flex flex-col gap-2">
+          <div key={item} className="bg-ey-field rounded-none p-3 flex flex-col gap-2">
             <p className="text-white font-bold text-sm">{item}</p>
             <div className="flex gap-2">
               {EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => toggle(item, emoji)}
-                  className={`flex-1 py-2 rounded-lg text-xl transition-all ${
+                  className={`flex-1 py-2 rounded-none text-xl transition-all ${
                     selected[item]?.[emoji]
-                      ? 'bg-[#FFE600] scale-110 shadow-md'
-                      : 'bg-zinc-700 hover:bg-zinc-600'
+                      ? 'bg-ey-yellow scale-110 shadow-md'
+                      : 'bg-ey-line hover:bg-ey-line-strong'
                   }`}
                 >
                   {emoji}
@@ -77,7 +77,7 @@ export function ParticipantReact({ prompt, items, onSubmit }: Props) {
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-ey-yellow text-ey-ink font-black text-lg rounded-none py-3 hover:bg-ey-yellow-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         Submit
       </button>

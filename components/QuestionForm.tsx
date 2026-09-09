@@ -124,9 +124,9 @@ export function questionFromDraft(d: QuestionDraft, id: string): Question {
 }
 
 const inputClass =
-  'w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm'
+  'w-full bg-ey-field border border-ey-line-strong rounded-none px-4 py-2 text-white placeholder:text-ey-subtle focus:outline-none focus:ring-2 focus:ring-ey-yellow text-sm'
 const axisClass =
-  'w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600] text-sm resize-none'
+  'w-full bg-ey-field border border-ey-line-strong rounded-none px-3 py-2 text-white placeholder:text-ey-subtle focus:outline-none focus:ring-2 focus:ring-ey-yellow text-sm resize-none'
 
 type ListFieldProps = {
   label: string
@@ -142,7 +142,7 @@ type ListFieldProps = {
 function ListField({ label, values, min, max, addLabel, itemLabel, maxLength, onChange }: ListFieldProps) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-zinc-400 text-sm">{label}</p>
+      <p className="text-ey-muted text-sm">{label}</p>
       {values.map((value, i) => (
         <div key={i} className="flex gap-2">
           <input
@@ -155,7 +155,7 @@ function ListField({ label, values, min, max, addLabel, itemLabel, maxLength, on
           {values.length > min && (
             <button
               onClick={() => onChange(values.filter((_, j) => j !== i))}
-              className="text-zinc-500 hover:text-red-400 px-2 transition-colors"
+              className="text-ey-subtle hover:text-red-400 px-2 transition-colors"
             >
               ✕
             </button>
@@ -163,7 +163,7 @@ function ListField({ label, values, min, max, addLabel, itemLabel, maxLength, on
         </div>
       ))}
       {values.length < max && (
-        <button onClick={() => onChange([...values, ''])} className="text-[#FFE600] text-sm text-left hover:underline">
+        <button onClick={() => onChange([...values, ''])} className="text-ey-yellow text-sm text-left hover:underline">
           {addLabel}
         </button>
       )}
@@ -190,8 +190,8 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
           <button
             key={t}
             onClick={() => onChange(emptyDraft(t))}
-            className={`py-2 px-3 rounded-xl text-sm font-bold transition-colors ${
-              draft.type === t ? 'bg-[#FFE600] text-zinc-900' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+            className={`py-2 px-3 rounded-none text-sm font-bold transition-colors ${
+              draft.type === t ? 'bg-ey-yellow text-ey-ink' : 'bg-ey-field text-ey-muted hover:bg-ey-line'
             }`}
           >
             {TYPE_LABELS[t]}
@@ -201,7 +201,7 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
 
       {/* Prompt */}
       <input
-        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
+        className="w-full bg-ey-field border border-ey-line-strong rounded-none px-4 py-3 text-white placeholder:text-ey-subtle focus:outline-none focus:ring-2 focus:ring-ey-yellow"
         placeholder={PLACEHOLDERS[draft.type]}
         value={draft.prompt}
         onChange={(e) => set({ prompt: e.target.value })}
@@ -226,7 +226,7 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
 
       {draft.type === 'coord_plot' && (
         <div className="flex flex-col gap-2">
-          <p className="text-zinc-400 text-sm">Label each end of each axis</p>
+          <p className="text-ey-muted text-sm">Label each end of each axis</p>
 
           {/* Row: Y-label column + grid */}
           <div className="flex gap-3 items-stretch">
@@ -249,9 +249,9 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
             </div>
 
             {/* Grid preview */}
-            <div className="flex-1 aspect-square border border-zinc-700 rounded-xl bg-zinc-800/40 relative shrink-0 min-w-0">
-              <div className="absolute top-0 bottom-0 left-1/2 border-l border-zinc-700/50 pointer-events-none" />
-              <div className="absolute left-0 right-0 top-1/2 border-t border-zinc-700/50 pointer-events-none" />
+            <div className="flex-1 aspect-square border border-ey-line-strong rounded-none bg-ey-field/40 relative shrink-0 min-w-0">
+              <div className="absolute top-0 bottom-0 left-1/2 border-l border-ey-line-strong/50 pointer-events-none" />
+              <div className="absolute left-0 right-0 top-1/2 border-t border-ey-line-strong/50 pointer-events-none" />
             </div>
           </div>
 
@@ -322,16 +322,16 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
           />
 
           <div className="flex flex-col gap-2">
-            <p className="text-zinc-400 text-sm">How many answers can each participant pick?</p>
+            <p className="text-ey-muted text-sm">How many answers can each participant pick?</p>
             <div className="grid grid-cols-2 gap-2">
               {([false, true] as const).map((multi) => (
                 <button
                   key={String(multi)}
                   onClick={() => set({ mcMultiSelect: multi })}
-                  className={`py-2 px-3 rounded-xl text-sm font-bold transition-colors ${
+                  className={`py-2 px-3 rounded-none text-sm font-bold transition-colors ${
                     draft.mcMultiSelect === multi
-                      ? 'bg-[#FFE600] text-zinc-900'
-                      : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                      ? 'bg-ey-yellow text-ey-ink'
+                      : 'bg-ey-field text-ey-muted hover:bg-ey-line'
                   }`}
                 >
                   {multi ? 'Multiple answers' : 'Single answer'}

@@ -134,11 +134,11 @@ export default function JoinPage() {
   // ── SESSION ENDED ─────────────────────────────────────────────────────────
   if (sessionEnded) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <main className="min-h-screen flex items-center justify-center bg-ey-ink">
         <div className="text-center">
           <p className="text-5xl mb-4">🎉</p>
-          <h1 className="text-2xl font-black text-[#FFE600]">Session Complete</h1>
-          <p className="text-zinc-400 mt-2">Thanks for participating, {name}!</p>
+          <h1 className="text-2xl font-black text-ey-yellow">Session Complete</h1>
+          <p className="text-ey-muted mt-2">Thanks for participating, {name}!</p>
         </div>
       </main>
     )
@@ -147,9 +147,9 @@ export default function JoinPage() {
   // ── ACTIVE QUESTION ───────────────────────────────────────────────────────
   if (joined && currentQuestion) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
-        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <p className="text-zinc-500 text-xs mb-4 text-center">
+      <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
+        <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-6">
+          <p className="text-ey-subtle text-xs mb-4 text-center">
             Question {currentQuestion.questionIndex + 1} of {currentQuestion.totalQuestions}
           </p>
 
@@ -239,11 +239,11 @@ export default function JoinPage() {
   // ── WAITING ───────────────────────────────────────────────────────────────
   if (joined) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
-        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center flex flex-col items-center gap-4">
+      <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
+        <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-8 text-center flex flex-col items-center gap-4">
           <div className="text-5xl">👋</div>
           <p className="text-white font-black text-xl">You&apos;re in, {name}!</p>
-          <p className="text-zinc-400">Waiting for the host to start...</p>
+          <p className="text-ey-muted">Waiting for the host to start...</p>
         </div>
       </main>
     )
@@ -251,14 +251,14 @@ export default function JoinPage() {
 
   // ── JOIN FORM ─────────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
-      <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col gap-6">
+    <main className="min-h-screen flex items-center justify-center bg-ey-ink p-4">
+      <div className="w-full max-w-sm bg-ey-panel border border-ey-line rounded-none p-8 flex flex-col gap-6">
         <div className="text-center">
-          <h1 className="text-3xl font-black text-[#FFE600]">Join Session</h1>
-          <p className="text-zinc-400 font-mono tracking-widest mt-1">{code}</p>
+          <h1 className="text-3xl font-black text-ey-yellow">Join Session</h1>
+          <p className="text-ey-muted font-mono tracking-widest mt-1">{code}</p>
         </div>
         <input
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
+          className="w-full bg-ey-field border border-ey-line-strong rounded-none px-4 py-3 text-white placeholder:text-ey-subtle focus:outline-none focus:ring-2 focus:ring-ey-yellow"
           placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -270,7 +270,7 @@ export default function JoinPage() {
         <button
           onClick={joinSession}
           disabled={loading || !name.trim()}
-          className="w-full bg-[#FFE600] text-zinc-900 font-black text-lg rounded-xl py-3 hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-ey-yellow text-ey-ink font-black text-lg rounded-none py-3 hover:bg-ey-yellow-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Joining...' : 'Join →'}
         </button>

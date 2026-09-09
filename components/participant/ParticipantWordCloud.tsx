@@ -25,11 +25,11 @@ export function ParticipantWordCloud({ prompt, onSubmit }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-white font-black text-2xl text-center">{prompt}</h2>
-      <p className="text-zinc-500 text-sm text-center">You can submit as many words as you like.</p>
+      <p className="text-ey-subtle text-sm text-center">You can submit as many words as you like.</p>
 
       <div className="flex gap-2">
         <input
-          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#FFE600]"
+          className="flex-1 bg-ey-field border border-ey-line-strong rounded-none px-4 py-3 text-white placeholder:text-ey-subtle focus:outline-none focus:ring-2 focus:ring-ey-yellow"
           placeholder="Type a word..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -41,7 +41,7 @@ export function ParticipantWordCloud({ prompt, onSubmit }: Props) {
         <button
           onClick={handleAdd}
           disabled={loading || !input.trim()}
-          className="bg-[#FFE600] text-zinc-900 font-black px-5 py-3 rounded-xl hover:bg-[#FFD900] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="bg-ey-yellow text-ey-ink font-black px-5 py-3 rounded-none hover:bg-ey-yellow-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Add
         </button>
@@ -50,7 +50,7 @@ export function ParticipantWordCloud({ prompt, onSubmit }: Props) {
       {submitted.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-1">
           {submitted.map((word, i) => (
-            <span key={i} className="bg-zinc-800 text-zinc-300 text-sm px-3 py-1 rounded-full">
+            <span key={i} className="bg-ey-field text-ey-muted text-sm px-3 py-1 rounded-full">
               ✓ {word}
             </span>
           ))}

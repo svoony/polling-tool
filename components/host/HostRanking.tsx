@@ -19,7 +19,7 @@ export function HostRanking({ prompt, options, scores }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between">
         <h2 className="text-white font-black text-2xl">{prompt}</h2>
-        <span className="text-zinc-500 text-sm shrink-0 ml-4">
+        <span className="text-ey-subtle text-sm shrink-0 ml-4">
           {totalSubmissions} response{totalSubmissions !== 1 ? 's' : ''}
         </span>
       </div>
@@ -32,14 +32,14 @@ export function HostRanking({ prompt, options, scores }: Props) {
             <div key={option} className="flex flex-col gap-1">
               <div className="flex justify-between items-baseline text-sm">
                 <span className="text-white font-bold">
-                  <span className="text-[#FFE600] mr-2">#{i + 1}</span>
+                  <span className="text-ey-yellow mr-2">#{i + 1}</span>
                   {option}
                 </span>
-                <span className="text-zinc-500 text-xs">{score} pts</span>
+                <span className="text-ey-subtle text-xs">{score} pts</span>
               </div>
-              <div className="h-7 bg-zinc-800 rounded-lg overflow-hidden">
+              <div className="h-7 bg-ey-field rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-[#FFE600] rounded-lg transition-all duration-500"
+                  className="h-full bg-ey-yellow rounded-none transition-all duration-500"
                   style={{ width: `${pct}%`, minWidth: score > 0 ? '4px' : '0' }}
                 />
               </div>
