@@ -48,6 +48,25 @@ export type MultipleChoiceQuestion = {
   options: string[]
   /** When true participants may pick several options. Absent on questions built before this existed. */
   multiSelect?: boolean
+  /** When true an extra "Other" choice lets participants type their own answer. Absent on older questions. */
+  allowOther?: boolean
+}
+
+/** Max length of a participant's "Other" write-in — enforced on the phone and again on the host. */
+export const OTHER_MAX_LENGTH = 80
+
+/** Collapses write-ins that differ only by case/spacing; keeps the first spelling seen. Most common first. */
+export function groupWriteIns(writeIns: string[]): Array<{ text: string; count: number }> {
+  const groups = new Map<string, { text: string; count: number }>()
+  for (const raw of writeIns) {
+    const text = raw.trim().replace(/\s+/g, ' ')
+    if (!text) continue
+    const key = text.toLowerCase()
+    const g = groups.get(key)
+    if (g) g.count++
+    else groups.set(key, { text, count: 1 })
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count || a.text.localeCompare(b.text))
 }
 
 export type Question =
@@ -66,7 +85,8 @@ export function questionDetail(q: Question): string {
   if (q.type === 'ranking') return q.options.join(' · ')
   if (q.type === 'react') return q.items.join(' · ')
   if (q.type === 'multiple_choice') {
-    return q.options.join(' · ') + (q.multiSelect ? '  —  multi-select' : '')
+    const options = q.allowOther ? [...q.options, 'Other (write-in)'] : q.options
+    return options.join(' · ') + (q.multiSelect ? '  —  multi-select' : '')
   }
   return ''
 }

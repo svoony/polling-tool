@@ -1,4 +1,4 @@
-import type { Question } from './questions'
+import { groupWriteIns, type Question } from './questions'
 
 // Every collected result, keyed the same way the host page stores them: questionIndex → data.
 export type ResultsSnapshot = {
@@ -8,6 +8,8 @@ export type ResultsSnapshot = {
   rankingScores: Record<number, Record<string, number>>
   reactionCounts: Record<number, Record<string, Record<string, number>>>
   mcVotes: Record<number, Record<string, number>>
+  /** "Other" write-ins per question, in arrival order */
+  mcOther: Record<number, string[]>
 }
 
 const HEADER = ['question_number', 'question_type', 'prompt', 'item', 'sub_item', 'metric', 'value'] as const
@@ -92,6 +94,12 @@ export function buildResultsCsv(questions: Question[], data: ResultsSnapshot): s
       // Multi-select counts are selections, not one-per-person votes — name them accordingly
       const metric = q.multiSelect ? 'selections' : 'votes'
       q.options.forEach((opt) => add(opt, '', metric, votes[opt] ?? 0))
+      if (q.allowOther) {
+        const writeIns = data.mcOther[i] ?? []
+        add('Other', '', metric, writeIns.length)
+        // One row per distinct write-in, grouped case-insensitively like the host screen
+        groupWriteIns(writeIns).forEach(({ text, count }) => add('Other', text, 'count', count))
+      }
     }
   })
 

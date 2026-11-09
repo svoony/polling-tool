@@ -18,6 +18,7 @@ export type QuestionDraft = {
   reactItems: string[]
   mcOptions: string[]
   mcMultiSelect: boolean
+  mcAllowOther: boolean
 }
 
 export const QUESTION_TYPES: QType[] = [
@@ -56,6 +57,7 @@ export function emptyDraft(type: QType): QuestionDraft {
     reactItems: [''],
     mcOptions: ['', ''],
     mcMultiSelect: false,
+    mcAllowOther: false,
   }
 }
 
@@ -74,6 +76,7 @@ export function draftFromQuestion(q: Question): QuestionDraft {
   if (q.type === 'multiple_choice') {
     draft.mcOptions = [...q.options]
     draft.mcMultiSelect = q.multiSelect ?? false
+    draft.mcAllowOther = q.allowOther ?? false
   }
   return draft
 }
@@ -118,6 +121,7 @@ export function questionFromDraft(d: QuestionDraft, id: string): Question {
       prompt,
       options: d.mcOptions.filter((o) => o.trim()),
       multiSelect: d.mcMultiSelect,
+      allowOther: d.mcAllowOther,
     }
   }
   return { id, type: d.type, prompt }
@@ -335,6 +339,25 @@ export function QuestionForm({ draft, onChange, onSubmit }: Props) {
                   }`}
                 >
                   {multi ? 'Multiple answers' : 'Single answer'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-ey-muted text-sm">Let participants write in their own answer?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([false, true] as const).map((other) => (
+                <button
+                  key={String(other)}
+                  onClick={() => set({ mcAllowOther: other })}
+                  className={`py-2 px-3 rounded-none text-sm font-bold transition-colors ${
+                    draft.mcAllowOther === other
+                      ? 'bg-ey-yellow text-ey-ink'
+                      : 'bg-ey-field text-ey-muted hover:bg-ey-line'
+                  }`}
+                >
+                  {other ? 'Add "Other" write-in' : 'Listed options only'}
                 </button>
               ))}
             </div>

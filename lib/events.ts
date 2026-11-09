@@ -71,6 +71,8 @@ export type MultipleChoiceAnswerPayload = {
   questionId: string
   /** One entry for a single-answer question, one or more when the question is multi-select */
   options: string[]
+  /** Present when the participant picked "Other" — their write-in text (never one of `options`) */
+  otherText?: string
 }
 
 export type AnswerPayload =

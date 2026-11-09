@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import QRCode from 'react-qr-code'
 import { supabase } from '@/lib/supabase'
 import { EVENTS, topics, type AnswerPayload, type QuestionStartPayload } from '@/lib/events'
-import { TYPE_LABELS, questionDetail, type Question } from '@/lib/questions'
+import { TYPE_LABELS, OTHER_MAX_LENGTH, questionDetail, type Question } from '@/lib/questions'
 import { buildResultsCsv } from '@/lib/csv'
 import {
   QuestionForm,
@@ -55,6 +55,8 @@ export default function HostPage() {
   const [allReactionCounts, setAllReactionCounts] = useState<Record<number, Record<string, Record<string, number>>>>({})
   // allMcVotes[qIdx][option] = count
   const [allMcVotes, setAllMcVotes] = useState<Record<number, Record<string, number>>>({})
+  // allMcOther[qIdx] = every "Other" write-in, in arrival order
+  const [allMcOther, setAllMcOther] = useState<Record<number, string[]>>({})
 
   // Per-question comparison choice — maps questionIndex → comparisonQuestionIndex | null
   // undefined means "never opened compare panel for this question" (treated as no comparison)
@@ -179,6 +181,12 @@ export default function HostPage() {
             }
             return { ...prev, [idx]: next }
           })
+          // Re-check the write-in here: anyone can publish to the answers topic
+          const otherText =
+            typeof payload.otherText === 'string' ? payload.otherText.trim().slice(0, OTHER_MAX_LENGTH) : ''
+          if (otherText) {
+            setAllMcOther((prev) => ({ ...prev, [idx]: [...(prev[idx] ?? []), otherText] }))
+          }
         } else if (payload.type === 'react') {
           setAllReactionCounts((prev) => {
             const prevCounts = prev[idx] ?? {}
@@ -223,6 +231,7 @@ export default function HostPage() {
     setAllRankingScores({})
     setAllReactionCounts({})
     setAllMcVotes({})
+    setAllMcOther({})
     setComparisonChoices({})
     setCompareOpen(false)
     // Send participants back to the waiting screen
@@ -351,6 +360,7 @@ export default function HostPage() {
       rankingScores: allRankingScores,
       reactionCounts: allReactionCounts,
       mcVotes: allMcVotes,
+      mcOther: allMcOther,
     })
     // BOM so Excel reads the UTF-8 (emoji reactions, accented words) correctly
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
@@ -407,6 +417,8 @@ export default function HostPage() {
           options={q.options}
           votes={allMcVotes[qIdx] ?? {}}
           multiSelect={q.multiSelect}
+          allowOther={q.allowOther}
+          writeIns={allMcOther[qIdx] ?? []}
         />
       )
     }
